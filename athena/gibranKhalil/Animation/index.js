@@ -1,10 +1,4 @@
 /**
- * Caminho para a pasta de assets do projeto.
- * @constant {string}
- */
-const PATH_TO_ASSETS = './src/assets/';
-
-/**
  * Classe responsável por lidar com animações baseadas em spritesheets.
  */
 export default class Animation {
@@ -23,6 +17,6 @@ export default class Animation {
     this.frameWidth = frameWidth;
     this.frameHeight = frameHeight;
     this.loop = loop;
-    this.image = new Image(PATH_TO_ASSETS + spritesheetPath);
+    this.image = new Image(spritesheetPath);
   }
 }
