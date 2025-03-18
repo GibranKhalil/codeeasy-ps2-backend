@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSnippetDto } from './dto/create-snippet.dto';
 import { UpdateSnippetDto } from './dto/update-snippet.dto';
+import { ISnippetRepository } from 'src/@types/interfaces/repositories/iSnippetRepository.interface';
 
 @Injectable()
 export class SnippetService {
+  constructor(private snippetsRepository: ISnippetRepository) {}
+
   create(createSnippetDto: CreateSnippetDto) {
-    return 'This action adds a new snippet';
+    return this.snippetsRepository.save(createSnippetDto);
   }
 
   findAll() {
-    return `This action returns all snippet`;
+    return this.snippetsRepository.find();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} snippet`;
+    return this.snippetsRepository.findOneBy({ id });
   }
 
   update(id: number, updateSnippetDto: UpdateSnippetDto) {
-    return `This action updates a #${id} snippet`;
+    return this.snippetsRepository.update(id, updateSnippetDto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} snippet`;
+    return this.snippetsRepository.delete(id);
   }
 }

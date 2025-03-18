@@ -1,22 +1,78 @@
-import { Interactions } from 'src/@types/interactions.type';
-import type { Category } from 'src/models/categorys/entities/category.entity';
+import type { Interactions } from 'src/@types/interactions.type';
+import { Category } from 'src/models/categorys/entities/category.entity';
 import { Tag } from 'src/models/tags/entities/tag.entity';
 import { User } from 'src/models/users/entities/user.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
+@Entity('games')
 export class Game {
+  @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
   title: string;
+
+  @Column({ type: 'text' })
   excerpt: string;
-  category: Category;
+
+  @Column()
   version: string;
-  tags: Tag[];
+
+  @Column()
   fileSize: number;
+
+  @Column({ type: 'text' })
   coverImage_url: string;
+
+  @Column('text', { array: true })
   screenshots: string[];
+
+  @Column({ type: 'text' })
   description: string;
+
+  @Column({ type: 'text' })
   game_url: string;
+
+  @Column()
+  downloads: Interactions['downloads'];
+
+  @Column()
+  views: Interactions['views'];
+
+  @Column()
+  stars: Interactions['stars'];
+
+  @Column()
+  likes: Interactions['likes'];
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
+
+  @UpdateDateColumn({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
+  })
   updatedAt: Date;
+
+  @ManyToOne(() => User, (creator) => creator.games)
   creator: User;
-  interactions: Interactions;
+
+  @ManyToOne(() => Category, (category) => category.games, {
+    nullable: false,
+  })
+  category: Category;
+
+  @ManyToMany(() => Tag, (tag) => tag.games)
+  @JoinTable()
+  tags: Tag[];
 }

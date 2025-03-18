@@ -1,34 +1,45 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import type { CreateSnippetDto } from './dto/create-snippet.dto';
+import type { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { SnippetService } from './snippet.service';
-import { CreateSnippetDto } from './dto/create-snippet.dto';
-import { UpdateSnippetDto } from './dto/update-snippet.dto';
 
 @Controller('snippet')
+@UseGuards(JwtAuthGuard)
 export class SnippetController {
-  constructor(private readonly snippetService: SnippetService) {}
+  constructor(private readonly snippetsService: SnippetService) {}
 
   @Post()
   create(@Body() createSnippetDto: CreateSnippetDto) {
-    return this.snippetService.create(createSnippetDto);
+    return this.snippetsService.create(createSnippetDto);
   }
 
   @Get()
   findAll() {
-    return this.snippetService.findAll();
+    return this.snippetsService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.snippetService.findOne(+id);
+    return this.snippetsService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateSnippetDto: UpdateSnippetDto) {
-    return this.snippetService.update(+id, updateSnippetDto);
+    return this.snippetsService.update(+id, updateSnippetDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.snippetService.remove(+id);
+    return this.snippetsService.remove(+id);
   }
 }

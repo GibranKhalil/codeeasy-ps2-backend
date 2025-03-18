@@ -1,26 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
+import { IGamesRepository } from 'src/@types/interfaces/repositories/iGamesRepository.interface';
 
 @Injectable()
 export class GamesService {
+  constructor(private readonly gameRepository: IGamesRepository) {}
+
   create(createGameDto: CreateGameDto) {
-    return 'This action adds a new game';
+    const newGame = this.gameRepository.create(createGameDto);
+    return this.gameRepository.save(newGame);
   }
 
   findAll() {
-    return `This action returns all games`;
+    return this.gameRepository.find();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} game`;
+    return this.gameRepository.findOneBy({ id });
   }
 
   update(id: number, updateGameDto: UpdateGameDto) {
-    return `This action updates a #${id} game`;
+    return this.gameRepository.update(id, updateGameDto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} game`;
+    return this.gameRepository.delete(id);
   }
 }

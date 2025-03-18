@@ -1,3 +1,8 @@
-type AvailableInteractions = 'stars' | 'views' | 'forks' | 'downloads';
+type AvailableInteractions =
+  | 'stars'
+  | 'likes'
+  | 'views'
+  | 'forks'
+  | 'downloads';
 
 export type Interactions = Record<AvailableInteractions, number>;

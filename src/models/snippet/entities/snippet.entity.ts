@@ -1,20 +1,67 @@
 import type { eSnippetLanguage } from 'src/@types/enums/eSnippetLanguage.enum';
 import type { Interactions } from 'src/@types/interactions.type';
-import type { Tag } from 'src/models/tags/entities/tag.entity';
-import type { User } from 'src/models/users/entities/user.entity';
+import { Tag } from 'src/models/tags/entities/tag.entity';
+import { User } from 'src/models/users/entities/user.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
+@Entity('snippets')
 export class Snippet {
+  @PrimaryGeneratedColumn()
   id: number;
-  creator: User;
+
+  @Column()
   title: string;
+
+  @Column({ type: 'text' })
   description: string;
+
+  @Column({ type: 'text' })
   code: string;
-  createdAt: Date;
-  updatedAt: Date;
-  lastModifier: User;
-  modifiers: User[];
+
+  @Column()
   language: eSnippetLanguage;
-  interactions: Interactions;
-  commentsCount: number;
+
+  @Column()
+  views: Interactions['views'];
+
+  @Column()
+  likes: Interactions['likes'];
+
+  @Column()
+  forks: Interactions['forks'];
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @UpdateDateColumn({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
+  })
+  updatedAt: Date;
+
+  @ManyToOne(() => User, (creator) => creator.snippets, { nullable: false })
+  creator: User;
+
+  @ManyToOne(() => User, (user) => user.snippetLastModifier, {
+    nullable: false,
+  })
+  lastModifier: User;
+
+  @ManyToMany(() => User, (user) => user.snippetModifiers)
+  @JoinTable()
+  modifiers: User[];
+
+  @ManyToMany(() => Tag, (tag) => tag.snippets)
+  @JoinTable()
   tags: Tag[];
 }

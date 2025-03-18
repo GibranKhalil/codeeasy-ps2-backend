@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
+import type { ITutorialsRepository } from 'src/@types/interfaces/repositories/iTutorialRepository.interface';
 import { CreateTutorialDto } from './dto/create-tutorial.dto';
 import { UpdateTutorialDto } from './dto/update-tutorial.dto';
 
 @Injectable()
 export class TutorialService {
+  constructor(private readonly tutorialRepository: ITutorialsRepository) {}
+
   create(createTutorialDto: CreateTutorialDto) {
-    return 'This action adds a new tutorial';
+    return this.tutorialRepository.save(createTutorialDto);
   }
 
   findAll() {
-    return `This action returns all tutorial`;
+    return this.tutorialRepository.find();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} tutorial`;
+    return this.tutorialRepository.findOneBy({ id });
   }
 
   update(id: number, updateTutorialDto: UpdateTutorialDto) {
-    return `This action updates a #${id} tutorial`;
+    return this.tutorialRepository.update(id, updateTutorialDto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} tutorial`;
+    return this.tutorialRepository.delete(id);
   }
 }
