@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { ICategoriesRepository } from 'src/@types/interfaces/repositories/iCategoriesRepository.interface';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly categoriesRepository: ICategoriesRepository) {}
+  constructor(
+    @Inject('ICategoriesRepository')
+    private readonly categoriesRepository: ICategoriesRepository,
+  ) {}
 
   create(createCategoryDto: CreateCategoryDto) {
     return this.categoriesRepository.save(createCategoryDto);

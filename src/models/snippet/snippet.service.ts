@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateSnippetDto } from './dto/create-snippet.dto';
 import { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { ISnippetRepository } from 'src/@types/interfaces/repositories/iSnippetRepository.interface';
 
 @Injectable()
 export class SnippetService {
-  constructor(private snippetsRepository: ISnippetRepository) {}
+  constructor(
+    @Inject('ISnippetRepository')
+    private readonly snippetsRepository: ISnippetRepository,
+  ) {}
 
   create(createSnippetDto: CreateSnippetDto) {
     return this.snippetsRepository.save(createSnippetDto);

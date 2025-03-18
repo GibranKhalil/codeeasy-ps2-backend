@@ -42,16 +42,16 @@ export class Game {
   @Column({ type: 'text' })
   game_url: string;
 
-  @Column()
+  @Column({ type: 'int', default: 0 })
   downloads: Interactions['downloads'];
 
-  @Column()
+  @Column({ type: 'int', default: 0 })
   views: Interactions['views'];
 
-  @Column()
+  @Column({ type: 'int', default: 0 })
   stars: Interactions['stars'];
 
-  @Column()
+  @Column({ type: 'int', default: 0 })
   likes: Interactions['likes'];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

@@ -33,10 +33,10 @@ export class Tutorial {
   @Column()
   content: string;
 
-  @Column()
+  @Column({ type: 'int', default: 0 })
   views: Interactions['views'];
 
-  @Column()
+  @Column({ type: 'int', default: 0 })
   likes: Interactions['likes'];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

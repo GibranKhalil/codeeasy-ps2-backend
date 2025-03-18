@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -12,12 +13,15 @@ import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import type { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
 import type { GithubUser } from './dto/github-user.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
   constructor(
+    @Inject('IUsersRepository')
     private readonly usersRepository: IUsersRepository,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async login(loginUserDto: LoginUserDto): Promise<{ access_token: string }> {
@@ -51,6 +55,8 @@ export class UsersService {
       ...createUserDto,
       password: hashedPassword,
     });
+
+    console.log(user);
     return this.usersRepository.save(user);
   }
 
@@ -95,7 +101,6 @@ export class UsersService {
     password: string,
     hashedPassword: string,
   ): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const isPasswordValid = await bcrypt.compare(password, hashedPassword);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Verifique os dados e tente novamente');
@@ -103,15 +108,16 @@ export class UsersService {
   }
 
   private async hashPassword(password: string): Promise<string> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     return await bcrypt.hash(password, 10);
   }
 
   private async generateAuthToken(user: User) {
     const payload = { sub: user.id.toString(), username: user.username };
     return {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: await this.jwtService.signAsync(payload, {
+        secret: this.configService.get('JWT_SECRET'),
+        expiresIn: '1h',
+      }),
     };
   }
 }

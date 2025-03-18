@@ -30,13 +30,13 @@ export class Snippet {
   @Column()
   language: eSnippetLanguage;
 
-  @Column()
+  @Column({ type: 'int', default: 0 })
   views: Interactions['views'];
 
-  @Column()
+  @Column({ type: 'int', default: 0 })
   likes: Interactions['likes'];
 
-  @Column()
+  @Column({ type: 'int', default: 0 })
   forks: Interactions['forks'];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

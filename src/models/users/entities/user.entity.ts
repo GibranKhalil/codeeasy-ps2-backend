@@ -28,19 +28,19 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   bio: string;
 
-  @Column('json')
+  @Column({ type: 'json', nullable: true })
   links: SocialLinks;
 
-  @Column()
+  @Column({ nullable: true })
   lastLoginAt: Date;
 
-  @Column()
+  @Column({ nullable: true })
   githubId?: string;
 
-  @Column()
+  @Column({ nullable: true })
   avatarUrl?: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

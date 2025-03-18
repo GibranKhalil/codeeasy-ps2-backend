@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { ITutorialsRepository } from 'src/@types/interfaces/repositories/iTutorialRepository.interface';
 import { CreateTutorialDto } from './dto/create-tutorial.dto';
 import { UpdateTutorialDto } from './dto/update-tutorial.dto';
 
 @Injectable()
 export class TutorialService {
-  constructor(private readonly tutorialRepository: ITutorialsRepository) {}
+  constructor(
+    @Inject('ITutorialsRepository')
+    private readonly tutorialRepository: ITutorialsRepository,
+  ) {}
 
   create(createTutorialDto: CreateTutorialDto) {
     return this.tutorialRepository.save(createTutorialDto);

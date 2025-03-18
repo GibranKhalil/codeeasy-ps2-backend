@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { IGamesRepository } from 'src/@types/interfaces/repositories/iGamesRepository.interface';
 
 @Injectable()
 export class GamesService {
-  constructor(private readonly gameRepository: IGamesRepository) {}
+  constructor(
+    @Inject('IGamesRepository')
+    private readonly gameRepository: IGamesRepository,
+  ) {}
 
   create(createGameDto: CreateGameDto) {
     const newGame = this.gameRepository.create(createGameDto);
