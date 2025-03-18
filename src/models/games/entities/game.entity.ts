@@ -1,44 +1,22 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
+import { Interactions } from 'src/@types/interactions.type';
+import type { Category } from 'src/models/categorys/entities/category.entity';
+import { Tag } from 'src/models/tags/entities/tag.entity';
+import { User } from 'src/models/users/entities/user.entity';
 
-@Entity("games")
 export class Game {
-  @PrimaryGeneratedColumn("uuid")
-  id: string
-
-  @Column()
-  title: string
-
-  @Column()
-  short_description: string
-
-  @Column()
-  category: string
-
-  @Column("simple-array", { nullable: true })
-  tags: string[]
-
-  @Column()
-  version: string
-
-  @Column()
-  file_size: number
-
-  @Column()
-  cover_image_url: string
-
-  @Column("simple-array")
-  screenshots: string[]
-
-  @Column()
-  game_description_url: string
-
-  @Column()
-  file_url: string
-
-  @CreateDateColumn()
-  created_at: Date
-
-  @UpdateDateColumn()
-  updated_at: Date
+  id: number;
+  title: string;
+  excerpt: string;
+  category: Category;
+  version: string;
+  tags: Tag[];
+  fileSize: number;
+  coverImage_url: string;
+  screenshots: string[];
+  description: string;
+  game_url: string;
+  createdAt: Date;
+  updatedAt: Date;
+  creator: User;
+  interactions: Interactions;
 }
-

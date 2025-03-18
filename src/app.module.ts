@@ -1,24 +1,16 @@
 import { Module } from '@nestjs/common';
-import { ThrottlerModule } from '@nestjs/throttler';
-import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { SnippetsModule } from './snippets/snippets.module';
-import { TutorialsModule } from './tutorials/tutorials.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UsersModule } from './models/users/users.module';
+import { SnippetModule } from './models/snippet/snippet.module';
+import { TagsModule } from './models/tags/tags.module';
+import { TutorialModule } from './models/tutorial/tutorial.module';
+import { CategorysModule } from './models/categorys/categorys.module';
+import { GamesModule } from './models/games/games.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 10,
-    }]),
-    AuthModule,
-    UsersModule,
-    SnippetsModule,
-    TutorialsModule,
-  ],
+  imports: [UsersModule, SnippetModule, TagsModule, TutorialModule, CategorysModule, GamesModule],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

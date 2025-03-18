@@ -1,10 +1,10 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import type { eUserRoles } from 'src/@types/enums/eUserRoles.enum';
 
 export class CreateUserDto {
-  @IsEmail()
+  username: string;
+  password?: string;
   email: string;
-
-  @IsString()
-  @MinLength(6)
-  password: string;
+  githubId?: string;
+  avatarUrl?: string;
+  role?: eUserRoles;
 }
