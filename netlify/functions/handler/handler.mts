@@ -2,8 +2,9 @@ import type { Config } from '@netlify/functions';
 
 export default async (req: Request) => {
   const headers = {
-    'Access-Control-Allow-Origin': 'https://ps2devhub.vercel.app/',
-    'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    'Access-Control-Allow-Origin': 'https://ps2devhub.vercel.app',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
   };
 
   if (req.method === 'OPTIONS') {
