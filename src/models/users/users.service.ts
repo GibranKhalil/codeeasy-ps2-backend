@@ -55,8 +55,6 @@ export class UsersService {
       ...createUserDto,
       password: hashedPassword,
     });
-
-    console.log(user);
     return this.usersRepository.save(user);
   }
 
