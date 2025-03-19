@@ -8,7 +8,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   app.use(helmet());
 
   app.enableCors({
@@ -23,7 +22,7 @@ async function bootstrap() {
 
   app.useLogger(logger);
 
-  const port = process.env.PORT ?? 3002;
+  const port = process.env.PORT || 8080;
   await app.listen(port);
 
   logger.log(`🚀 API rodando em http://localhost:${port}`);

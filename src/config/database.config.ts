@@ -16,6 +16,6 @@ export const getDatabaseConfig = (
     ssl: {
       rejectUnauthorized: false,
     },
-    synchronize: true,
+    synchronize: false,
   };
 };
