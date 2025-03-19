@@ -12,7 +12,7 @@ async function bootstrap() {
   app.use(helmet());
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://ps2devhub.vercel.app/'],
+    origin: ['http://localhost:3000', 'https://ps2devhub.vercel.app'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
