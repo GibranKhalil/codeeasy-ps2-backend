@@ -5,7 +5,6 @@ import { Strategy } from 'passport-github2';
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   constructor() {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super({
       clientID: process.env.GITHUB_CLIENT_ID || '',
       clientSecret: process.env.GITHUB_CLIENT_SECRET || '',

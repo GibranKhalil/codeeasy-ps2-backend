@@ -58,6 +58,12 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
+  @Get('token/:token')
+  @UseGuards(JwtAuthGuard)
+  findOneByToken(@Param('token') token: string) {
+    return this.usersService.findUserByToken(token);
+  }
+
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {

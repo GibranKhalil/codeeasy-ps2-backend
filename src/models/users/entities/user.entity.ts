@@ -19,6 +19,9 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @PrimaryGeneratedColumn('uuid')
+  pid: string;
+
   @Column()
   username: string;
 

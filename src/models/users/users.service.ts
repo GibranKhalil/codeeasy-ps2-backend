@@ -66,6 +66,27 @@ export class UsersService {
     return this.usersRepository.findOneBy({ id });
   }
 
+  async findUserByToken(token: string) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const decoded = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const userId = Number(decoded.sub);
+      const user = await this.findOne(userId);
+
+      if (!user) {
+        throw new NotFoundException('Usuário não encontrado via token');
+      }
+
+      return user;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto) {
     if (updateUserDto.password) {
       updateUserDto.password = await this.hashPassword(updateUserDto.password);

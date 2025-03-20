@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CreateSnippetDto } from './dto/create-snippet.dto';
 import { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { ISnippetRepository } from 'src/@types/interfaces/repositories/iSnippetRepository.interface';
@@ -11,6 +11,9 @@ export class SnippetService {
   ) {}
 
   create(createSnippetDto: CreateSnippetDto) {
+    if (!createSnippetDto.creator.id) {
+      throw new BadRequestException('É preciso que o snippet tenha um criador');
+    }
     return this.snippetsRepository.save(createSnippetDto);
   }
 
