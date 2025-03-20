@@ -67,24 +67,19 @@ export class UsersService {
   }
 
   async findUserByToken(token: string) {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const decoded = this.jwtService.verify(token, {
-        secret: this.configService.get('JWT_SECRET'),
-      });
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const userId = Number(decoded.sub);
-      const user = await this.findOne(userId);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const decoded = this.jwtService.verify(token, {
+      secret: this.configService.get('JWT_SECRET'),
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const userId = Number(decoded.sub);
+    const user = await this.findOne(userId);
 
-      if (!user) {
-        throw new NotFoundException('Usuário não encontrado via token');
-      }
-
-      return user;
-    } catch (error) {
-      console.error(error);
-      throw error;
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado via token');
     }
+
+    return user;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {

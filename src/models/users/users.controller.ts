@@ -59,7 +59,6 @@ export class UsersController {
   }
 
   @Get('token/:token')
-  @UseGuards(JwtAuthGuard)
   findOneByToken(@Param('token') token: string) {
     return this.usersService.findUserByToken(token);
   }
