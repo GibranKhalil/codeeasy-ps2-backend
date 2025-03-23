@@ -2,10 +2,11 @@ import { Submission } from 'src/models/submissions/entities/submission.entity';
 import { IGenericRepository } from '../common/iGenericRepository.interface';
 import { CreateSubmissionDto } from 'src/models/submissions/dto/create-submission.dto';
 import { UpdateSubmissionDto } from 'src/models/submissions/dto/update-submission.dto';
+import { IPaginatedResult } from '../common/iPaginatedResult.interface';
 
 export interface ISubmissionsRepository
   extends IGenericRepository<
-    Submission,
+    IPaginatedResult<Submission>,
     Submission,
     CreateSubmissionDto,
     UpdateSubmissionDto,

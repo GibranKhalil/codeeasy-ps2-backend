@@ -4,6 +4,7 @@ import { Tag } from './entities/tag.entity';
 import type { CreateTagDto } from './dto/create-tag.dto';
 import type { UpdateTagDto } from './dto/update-tag.dto';
 import { ITagsRepository } from 'src/@types/interfaces/repositories/iTagsRepository.interface';
+import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
 
 @Injectable()
 export class TagsRepository implements ITagsRepository {
@@ -28,9 +29,31 @@ export class TagsRepository implements ITagsRepository {
     });
   }
 
-  async find(): Promise<Tag[]> {
-    return this.repository.find();
+  async find(page = 1, limit = 10): Promise<IPaginatedResult<Tag>> {
+    const queryBuilder = this.repository.createQueryBuilder('tag');
+
+    const total = await queryBuilder.getCount();
+
+    const data = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      },
+    };
   }
+
   async findOneBy(options: object): Promise<Tag | null> {
     return this.repository.findOne({ where: options });
   }

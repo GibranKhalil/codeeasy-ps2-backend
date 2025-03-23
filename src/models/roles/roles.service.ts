@@ -14,8 +14,8 @@ export class RolesService {
     return this.roleRepository.save(newRole);
   }
 
-  findAll() {
-    return this.roleRepository.find();
+  findAll(page = 1, limit = 10) {
+    return this.roleRepository.find(page, limit);
   }
 
   findOne(id: number) {

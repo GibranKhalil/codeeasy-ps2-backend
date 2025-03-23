@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { Role } from './entities/role.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
 
 @Injectable()
 export class RolesRepository implements IRoleRepository {
@@ -11,8 +12,29 @@ export class RolesRepository implements IRoleRepository {
 
   constructor(private readonly dataSource: DataSource) {}
 
-  async find(): Promise<Role[]> {
-    return await this.repository.find();
+  async find(page = 1, limit = 10): Promise<IPaginatedResult<Role>> {
+    const queryBuilder = this.repository.createQueryBuilder('role');
+
+    const total = await queryBuilder.getCount();
+
+    const data = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      },
+    };
   }
 
   async findOneBy(options: object): Promise<Role | null> {

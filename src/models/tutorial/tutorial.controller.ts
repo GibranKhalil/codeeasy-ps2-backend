@@ -14,11 +14,11 @@ import type { CreateTutorialDto } from './dto/create-tutorial.dto';
 import type { UpdateTutorialDto } from './dto/update-tutorial.dto';
 
 @Controller('tutorials')
-@UseGuards(JwtAuthGuard)
 export class TutorialController {
   constructor(private readonly tutorialsService: TutorialService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   create(@Body() createTutorialDto: CreateTutorialDto) {
     return this.tutorialsService.create(createTutorialDto);
   }
@@ -34,6 +34,7 @@ export class TutorialController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: string,
     @Body() updateTutorialDto: UpdateTutorialDto,
@@ -42,6 +43,7 @@ export class TutorialController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string) {
     return this.tutorialsService.remove(+id);
   }

@@ -15,8 +15,8 @@ export class GamesService {
     return this.gameRepository.save(newGame);
   }
 
-  findAll() {
-    return this.gameRepository.find();
+  findAll(page = 1, limit = 10) {
+    return this.gameRepository.find(page, limit);
   }
 
   findOne(id: number) {

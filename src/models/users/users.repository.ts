@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
 import type { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
+import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
@@ -29,8 +30,29 @@ export class UsersRepository implements IUsersRepository {
     return this.repository.save(user);
   }
 
-  async find(): Promise<User[]> {
-    return this.repository.find();
+  async find(page = 1, limit = 10): Promise<IPaginatedResult<User>> {
+    const queryBuilder = this.repository.createQueryBuilder('user');
+
+    const total = await queryBuilder.getCount();
+
+    const data = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      },
+    };
   }
 
   async findOneBy(options: object): Promise<User | null> {

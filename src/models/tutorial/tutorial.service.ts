@@ -14,8 +14,8 @@ export class TutorialService {
     return this.tutorialRepository.save(createTutorialDto);
   }
 
-  findAll() {
-    return this.tutorialRepository.find();
+  findAll(page = 1, limit = 10) {
+    return this.tutorialRepository.find(page, limit);
   }
 
   findOne(id: number) {

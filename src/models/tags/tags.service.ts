@@ -13,8 +13,8 @@ export class TagsService {
     return this.tagsRepository.save(createTagDto);
   }
 
-  findAll() {
-    return this.tagsRepository.find();
+  findAll(page = 1, limit = 10) {
+    return this.tagsRepository.find(page, limit);
   }
 
   findOne(id: number) {

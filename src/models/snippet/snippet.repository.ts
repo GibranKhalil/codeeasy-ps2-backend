@@ -5,6 +5,7 @@ import type { ISnippetRepository } from 'src/@types/interfaces/repositories/iSni
 import type { CreateSnippetDto } from './dto/create-snippet.dto';
 import type { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
+import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
 
 @Injectable()
 export class SnippetRepository implements ISnippetRepository {
@@ -26,10 +27,10 @@ export class SnippetRepository implements ISnippetRepository {
     });
   }
 
-  async findAllWithCreatorRelation(
+  private async findAllWithCreatorRelation(
     page: number,
     limit: number,
-  ): Promise<Snippet[]> {
+  ): Promise<IPaginatedResult<Snippet>> {
     const queryBuilder = this.repository
       .createQueryBuilder('s')
       .leftJoinAndSelect('s.creator', 'creator')
@@ -45,11 +46,24 @@ export class SnippetRepository implements ISnippetRepository {
         'creator.username',
         'creator.pid',
       ])
-      .where('s.status = :status', { status: eContentStatus.APPROVED })
-      .skip((page - 1) * limit)
-      .take(limit);
+      .where('s.status = :status', { status: eContentStatus.APPROVED });
 
-    return queryBuilder.getMany();
+    const total = await queryBuilder.getCount();
+    queryBuilder.skip((page - 1) * limit).take(limit);
+    const data = await queryBuilder.getMany();
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      },
+    };
   }
 
   async findAllWithRelations(): Promise<Snippet[]> {
@@ -58,8 +72,8 @@ export class SnippetRepository implements ISnippetRepository {
     });
   }
 
-  async find(): Promise<Snippet[]> {
-    return this.repository.find();
+  async find(page = 1, limit = 10): Promise<IPaginatedResult<Snippet>> {
+    return this.findAllWithCreatorRelation(page, limit);
   }
   async findOneBy(options: object): Promise<Snippet | null> {
     return this.repository.findOne({ where: options });

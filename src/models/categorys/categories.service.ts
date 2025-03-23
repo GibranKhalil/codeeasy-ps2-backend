@@ -14,8 +14,8 @@ export class CategoriesService {
     return this.categoriesRepository.save(createCategoryDto);
   }
 
-  findAll() {
-    return this.categoriesRepository.find();
+  findAll(page = 1, limit = 10) {
+    return this.categoriesRepository.find(page, limit);
   }
 
   findOne(id: number) {

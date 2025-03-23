@@ -42,8 +42,8 @@ export class SnippetService {
     return this.snippetsRepository.save(newSnippet);
   }
 
-  findAll() {
-    return this.snippetsRepository.findAllWithCreatorRelation(1, 10);
+  findAll(page = 1, limit = 10) {
+    return this.snippetsRepository.find(page, limit);
   }
 
   findOne(id: number) {

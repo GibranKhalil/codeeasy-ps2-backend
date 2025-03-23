@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
 
 @Injectable()
 export class CategoriesRepository implements ICategoriesRepository {
@@ -28,9 +29,31 @@ export class CategoriesRepository implements ICategoriesRepository {
     });
   }
 
-  async find(): Promise<Category[]> {
-    return await this.repository.find();
+  async find(page = 1, limit = 10): Promise<IPaginatedResult<Category>> {
+    const queryBuilder = this.repository.createQueryBuilder('category');
+
+    const total = await queryBuilder.getCount();
+
+    const data = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      },
+    };
   }
+
   async findOneBy(options: object): Promise<Category | null> {
     return await this.repository.findOne({ where: options });
   }

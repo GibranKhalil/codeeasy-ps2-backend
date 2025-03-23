@@ -4,6 +4,7 @@ import { Tutorial } from './entities/tutorial.entity';
 import type { ITutorialsRepository } from 'src/@types/interfaces/repositories/iTutorialRepository.interface';
 import type { CreateTutorialDto } from './dto/create-tutorial.dto';
 import type { UpdateTutorialDto } from './dto/update-tutorial.dto';
+import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
 
 @Injectable()
 export class TutorialRepository implements ITutorialsRepository {
@@ -11,8 +12,29 @@ export class TutorialRepository implements ITutorialsRepository {
 
   constructor(private readonly dataSource: DataSource) {}
 
-  async find(): Promise<Tutorial[]> {
-    return this.repository.find();
+  async find(page = 1, limit = 10): Promise<IPaginatedResult<Tutorial>> {
+    const queryBuilder = this.repository.createQueryBuilder('tutorial');
+
+    const total = await queryBuilder.getCount();
+
+    const data = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      },
+    };
   }
 
   async findOneBy(options: object): Promise<Tutorial | null> {

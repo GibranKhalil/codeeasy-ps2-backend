@@ -58,8 +58,8 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  findAll() {
-    return this.usersRepository.find();
+  findAll(page = 1, limit = 10) {
+    return this.usersRepository.find(page, limit);
   }
 
   findOne(id: number) {

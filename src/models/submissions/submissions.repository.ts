@@ -4,6 +4,7 @@ import { Submission } from './entities/submission.entity';
 import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubmissionsRepository';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
+import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
 
 @Injectable()
 export class SubmissionsRepository implements ISubmissionsRepository {
@@ -58,8 +59,28 @@ export class SubmissionsRepository implements ISubmissionsRepository {
     return this.repository.findOneBy({ id: contentId });
   }
 
-  async find(): Promise<Submission[]> {
-    return this.repository.find();
+  async find(page = 1, limit = 10): Promise<IPaginatedResult<Submission>> {
+    const queryBuilder = this.repository.createQueryBuilder('submission');
+
+    const total = await queryBuilder.getCount();
+    const data = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      },
+    };
   }
 
   async findOneBy(options: object): Promise<Submission | null> {

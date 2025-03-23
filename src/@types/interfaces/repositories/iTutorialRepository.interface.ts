@@ -2,10 +2,11 @@ import type { CreateTutorialDto } from 'src/models/tutorial/dto/create-tutorial.
 import type { IGenericRepository } from '../common/iGenericRepository.interface';
 import type { UpdateTutorialDto } from 'src/models/tutorial/dto/update-tutorial.dto';
 import type { Tutorial } from 'src/models/tutorial/entities/tutorial.entity';
+import { IPaginatedResult } from '../common/iPaginatedResult.interface';
 
 export interface ITutorialsRepository
   extends IGenericRepository<
-    Tutorial,
+    IPaginatedResult<Tutorial>,
     Tutorial,
     CreateTutorialDto,
     UpdateTutorialDto,
