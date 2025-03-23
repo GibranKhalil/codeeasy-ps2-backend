@@ -1,3 +1,4 @@
+import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import { Interactions } from 'src/@types/interactions.type';
 import { Category } from 'src/models/categorys/entities/category.entity';
 import { Tag } from 'src/models/tags/entities/tag.entity';
@@ -32,6 +33,9 @@ export class Tutorial {
 
   @Column()
   content: string;
+
+  @Column({ default: eContentStatus.PENDING })
+  status: eContentStatus;
 
   @Column({ type: 'int', default: 0 })
   views: Interactions['views'];

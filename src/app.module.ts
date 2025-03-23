@@ -12,6 +12,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getDatabaseConfig } from './config/database.config';
 import { JwtStrategy } from './models/users/strategies/jwt.strategy';
+import { SubmissionsModule } from './models/submissions/submissions.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { JwtStrategy } from './models/users/strategies/jwt.strategy';
     CategoriesModule,
     GamesModule,
     RolesModule,
+    SubmissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtStrategy],

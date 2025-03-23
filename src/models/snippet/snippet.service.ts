@@ -8,6 +8,7 @@ import { CreateSnippetDto } from './dto/create-snippet.dto';
 import { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { ISnippetRepository } from 'src/@types/interfaces/repositories/iSnippetRepository.interface';
 import { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
+import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubmissionsRepository';
 
 @Injectable()
 export class SnippetService {
@@ -16,6 +17,8 @@ export class SnippetService {
     private readonly snippetsRepository: ISnippetRepository,
     @Inject('IUsersRepository')
     private readonly usersRepository: IUsersRepository,
+    @Inject('ISubmissionsRepository')
+    private readonly submissionRepository: ISubmissionsRepository,
   ) {}
 
   async create(createSnippetDto: CreateSnippetDto) {

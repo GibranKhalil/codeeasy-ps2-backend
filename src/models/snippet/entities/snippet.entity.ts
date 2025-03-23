@@ -1,4 +1,5 @@
-import { eSnippetEngine } from 'src/@types/enums/eSnippetEngine.enum';
+import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
+import type { eSnippetEngine } from 'src/@types/enums/eSnippetEngine.enum';
 import type { eSnippetLanguage } from 'src/@types/enums/eSnippetLanguage.enum';
 import type { Interactions } from 'src/@types/interactions.type';
 import { Tag } from 'src/models/tags/entities/tag.entity';
@@ -37,6 +38,9 @@ export class Snippet {
 
   @Column()
   engine: eSnippetEngine;
+
+  @Column({ default: eContentStatus.PENDING })
+  status: eContentStatus;
 
   @Column({ type: 'int', default: 0 })
   views: Interactions['views'];

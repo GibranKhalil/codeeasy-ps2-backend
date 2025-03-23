@@ -4,6 +4,7 @@ import { Snippet } from './entities/snippet.entity';
 import type { ISnippetRepository } from 'src/@types/interfaces/repositories/iSnippetRepository.interface';
 import type { CreateSnippetDto } from './dto/create-snippet.dto';
 import type { UpdateSnippetDto } from './dto/update-snippet.dto';
+import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 
 @Injectable()
 export class SnippetRepository implements ISnippetRepository {
@@ -44,6 +45,7 @@ export class SnippetRepository implements ISnippetRepository {
         'creator.username',
         'creator.pid',
       ])
+      .where('s.status = :status', { status: eContentStatus.APPROVED })
       .skip((page - 1) * limit)
       .take(limit);
 

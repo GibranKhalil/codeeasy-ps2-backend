@@ -1,3 +1,4 @@
+import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import type { Interactions } from 'src/@types/interactions.type';
 import { Category } from 'src/models/categorys/entities/category.entity';
 import { Tag } from 'src/models/tags/entities/tag.entity';
@@ -56,6 +57,9 @@ export class Game {
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
+
+  @Column({ default: eContentStatus.PENDING })
+  status: eContentStatus;
 
   @UpdateDateColumn({
     type: 'timestamp',
