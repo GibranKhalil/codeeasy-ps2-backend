@@ -25,6 +25,31 @@ export class SnippetRepository implements ISnippetRepository {
     });
   }
 
+  async findAllWithCreatorRelation(
+    page: number,
+    limit: number,
+  ): Promise<Snippet[]> {
+    const queryBuilder = this.repository
+      .createQueryBuilder('s')
+      .leftJoinAndSelect('s.creator', 'creator')
+      .select([
+        's.id',
+        's.pid',
+        's.title',
+        's.description',
+        's.language',
+        's.code',
+        's.createdAt',
+        'creator.avatarUrl',
+        'creator.username',
+        'creator.pid',
+      ])
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    return queryBuilder.getMany();
+  }
+
   async findAllWithRelations(): Promise<Snippet[]> {
     return this.repository.find({
       relations: ['creator', 'lastModifier', 'modifiers', 'tags'],

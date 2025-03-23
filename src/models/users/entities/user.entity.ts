@@ -19,7 +19,7 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @PrimaryGeneratedColumn('uuid')
+  @Column({ type: 'uuid', unique: true, default: () => 'uuid_generate_v4()' })
   pid: string;
 
   @Column()
@@ -66,7 +66,7 @@ export class User {
   games: Game[];
 
   @OneToMany(() => Snippet, (snippet) => snippet.lastModifier)
-  snippetLastModifier: Snippet;
+  snippetLastModifier: Snippet[];
 
   @ManyToMany(() => Snippet, (snippet) => snippet.modifiers)
   snippetModifiers: Snippet[];

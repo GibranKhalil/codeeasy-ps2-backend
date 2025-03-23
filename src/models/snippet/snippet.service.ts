@@ -1,24 +1,46 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateSnippetDto } from './dto/create-snippet.dto';
 import { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { ISnippetRepository } from 'src/@types/interfaces/repositories/iSnippetRepository.interface';
+import { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
 
 @Injectable()
 export class SnippetService {
   constructor(
     @Inject('ISnippetRepository')
     private readonly snippetsRepository: ISnippetRepository,
+    @Inject('IUsersRepository')
+    private readonly usersRepository: IUsersRepository,
   ) {}
 
-  create(createSnippetDto: CreateSnippetDto) {
-    if (!createSnippetDto.creator.id) {
+  async create(createSnippetDto: CreateSnippetDto) {
+    if (!createSnippetDto.creatorId) {
       throw new BadRequestException('É preciso que o snippet tenha um criador');
     }
-    return this.snippetsRepository.save(createSnippetDto);
+
+    const creator = await this.usersRepository.findOneBy({
+      id: createSnippetDto.creatorId,
+    });
+
+    if (!creator) {
+      throw new NotFoundException('Criador não encontrado');
+    }
+
+    const newSnippet = this.snippetsRepository.create({
+      ...createSnippetDto,
+      creator,
+    });
+
+    return this.snippetsRepository.save(newSnippet);
   }
 
   findAll() {
-    return this.snippetsRepository.find();
+    return this.snippetsRepository.findAllWithCreatorRelation(1, 10);
   }
 
   findOne(id: number) {

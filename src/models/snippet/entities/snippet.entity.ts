@@ -7,6 +7,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   ManyToOne,
@@ -18,6 +19,9 @@ import {
 export class Snippet {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: 'uuid', unique: true, default: () => 'uuid_generate_v4()' })
+  pid: string;
 
   @Column()
   title: string;
@@ -54,15 +58,16 @@ export class Snippet {
   updatedAt: Date;
 
   @ManyToOne(() => User, (creator) => creator.snippets, { nullable: false })
+  @JoinColumn({ name: 'creatorId' })
   creator: User;
 
   @ManyToOne(() => User, (user) => user.snippetLastModifier, {
-    nullable: false,
+    nullable: true,
   })
+  @JoinColumn({ name: 'lastModifierId' })
   lastModifier: User;
 
   @ManyToMany(() => User, (user) => user.snippetModifiers)
-  @JoinTable()
   modifiers: User[];
 
   @ManyToMany(() => Tag, (tag) => tag.snippets)

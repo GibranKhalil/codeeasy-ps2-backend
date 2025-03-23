@@ -14,11 +14,11 @@ import type { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { SnippetService } from './snippet.service';
 
 @Controller('snippet')
-@UseGuards(JwtAuthGuard)
 export class SnippetController {
   constructor(private readonly snippetsService: SnippetService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   create(@Body() createSnippetDto: CreateSnippetDto) {
     return this.snippetsService.create(createSnippetDto);
   }
@@ -34,11 +34,13 @@ export class SnippetController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() updateSnippetDto: UpdateSnippetDto) {
     return this.snippetsService.update(+id, updateSnippetDto);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string) {
     return this.snippetsService.remove(+id);
   }
