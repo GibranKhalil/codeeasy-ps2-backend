@@ -66,6 +66,29 @@ export class SnippetRepository implements ISnippetRepository {
     };
   }
 
+  async findFeaturedSnippetsWithCreator(): Promise<Snippet[]> {
+    const queryBuilder = this.repository
+      .createQueryBuilder('s')
+      .leftJoinAndSelect('s.creator', 'creator')
+      .select([
+        's.id',
+        's.pid',
+        's.title',
+        's.description',
+        's.language',
+        's.code',
+        's.createdAt',
+        'creator.avatarUrl',
+        'creator.username',
+        'creator.pid',
+      ])
+      .limit(3)
+      .where('s.status = :status', { status: eContentStatus.APPROVED })
+      .orderBy('s.views', 'DESC');
+
+    return queryBuilder.getMany();
+  }
+
   async findAllWithRelations(): Promise<Snippet[]> {
     return this.repository.find({
       relations: ['creator', 'lastModifier', 'modifiers', 'tags'],

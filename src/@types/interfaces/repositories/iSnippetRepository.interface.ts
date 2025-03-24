@@ -12,6 +12,7 @@ export interface ISnippetRepository
     Snippet
   > {
   findAllWithRelations(): Promise<Snippet[]>;
+  findFeaturedSnippetsWithCreator(): Promise<Snippet[]>;
   findWithRelations(id: number): Promise<Snippet | null>;
   findByCreator(creatorId: number): Promise<Snippet[]>;
 }

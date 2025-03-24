@@ -42,6 +42,10 @@ export class SnippetService {
     return this.snippetsRepository.save(newSnippet);
   }
 
+  findFeaturedContent() {
+    return this.snippetsRepository.findFeaturedSnippetsWithCreator();
+  }
+
   findAll(page = 1, limit = 10) {
     return this.snippetsRepository.find(page, limit);
   }

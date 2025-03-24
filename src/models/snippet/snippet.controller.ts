@@ -23,6 +23,11 @@ export class SnippetController {
     return this.snippetsService.create(createSnippetDto);
   }
 
+  @Get('/featured')
+  findFeaturedContent() {
+    return this.snippetsService.findFeaturedContent();
+  }
+
   @Get()
   findAll() {
     return this.snippetsService.findAll();

@@ -19,6 +19,9 @@ export class Tutorial {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'uuid', unique: true, default: () => 'uuid_generate_v4()' })
+  pid: string;
+
   @Column()
   title: string;
 
