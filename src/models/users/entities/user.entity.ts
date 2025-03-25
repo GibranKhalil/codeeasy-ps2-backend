@@ -1,4 +1,3 @@
-import type { SocialLinks } from 'src/@types/socialLinks.type';
 import { Game } from 'src/models/games/entities/game.entity';
 import { Role } from 'src/models/roles/entities/role.entity';
 import { Snippet } from 'src/models/snippet/entities/snippet.entity';
@@ -34,8 +33,14 @@ export class User {
   @Column({ type: 'text', nullable: true })
   bio: string;
 
-  @Column({ type: 'json', nullable: true })
-  links: SocialLinks;
+  @Column({ nullable: true })
+  linkedin?: string;
+
+  @Column({ nullable: true })
+  github?: string;
+
+  @Column({ nullable: true })
+  website?: string;
 
   @Column({ nullable: true })
   lastLoginAt: Date;

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
 import type { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
@@ -12,6 +12,44 @@ export class UsersRepository implements IUsersRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     return this.repository.findOne({ where: { email } });
+  }
+
+  async findUserWithRoles(identifier: {
+    id?: number;
+    email?: string;
+    pid?: string;
+  }): Promise<User | null> {
+    const queryBuilder = this.repository
+      .createQueryBuilder('user')
+      .select([
+        'user.id',
+        'user.pid',
+        'user.username',
+        'user.email',
+        'user.bio',
+        'user.lastLoginAt',
+        'user.avatarUrl',
+        'user.createdAt',
+        'user.updatedAt',
+        'user.website',
+        'user.linkedin',
+        'user.github',
+      ])
+      .leftJoinAndSelect('user.roles', 'roles');
+
+    if (identifier.id) {
+      queryBuilder.where('user.id = :id', { id: identifier.id });
+    } else if (identifier.email) {
+      queryBuilder.where('user.email = :email', { email: identifier.email });
+    } else if (identifier.pid) {
+      queryBuilder.where('user.pid = :pid', { pid: identifier.pid });
+    } else {
+      throw new BadRequestException(
+        'Envie o id, email ou pid do usuário para realizar a busca',
+      );
+    }
+
+    return queryBuilder.getOne();
   }
 
   async findByUsername(username: string): Promise<User | null> {
@@ -56,7 +94,30 @@ export class UsersRepository implements IUsersRepository {
   }
 
   async findOneBy(options: object): Promise<User | null> {
-    return this.repository.findOne({ where: options });
+    return this.repository.findOne({
+      where: options,
+      select: {
+        avatarUrl: true,
+        bio: true,
+        email: true,
+        games: true,
+        github: true,
+        website: true,
+        linkedin: true,
+        lastLoginAt: true,
+        pid: true,
+        roles: true,
+        username: true,
+        githubId: true,
+        tutorials: true,
+        snippetModifiers: true,
+        snippetLastModifier: true,
+        snippets: true,
+        createdAt: true,
+        updatedAt: true,
+        id: true,
+      },
+    });
   }
 
   async update(id: number, updateUserDto: Partial<User>): Promise<void> {

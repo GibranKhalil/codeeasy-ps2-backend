@@ -5,6 +5,8 @@ import type { ITutorialsRepository } from 'src/@types/interfaces/repositories/iT
 import type { CreateTutorialDto } from './dto/create-tutorial.dto';
 import type { UpdateTutorialDto } from './dto/update-tutorial.dto';
 import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
+import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
+import { PaginationParams } from 'src/@types/paginationParams.type';
 
 @Injectable()
 export class TutorialRepository implements ITutorialsRepository {
@@ -41,23 +43,73 @@ export class TutorialRepository implements ITutorialsRepository {
     return this.repository.findOne({ where: options });
   }
 
-  async findByCreator(creatorId: number): Promise<Tutorial[]> {
-    return this.repository.find({
+  async findFeaturedTutorialsWithCreator(): Promise<Tutorial[]> {
+    const queryBuilder = this.repository
+      .createQueryBuilder('t')
+      .leftJoinAndSelect('t.creator', 'creator')
+      .leftJoinAndSelect('t.category', 'category')
+      .select([
+        't.id',
+        't.pid',
+        't.title',
+        't.excerpt',
+        't.readTime',
+        't.coverImage_url',
+        'creator.avatarUrl',
+        'creator.username',
+        'creator.pid',
+        'category.name',
+      ])
+      .limit(3)
+      .where('t.status = :status', { status: eContentStatus.APPROVED })
+      .orderBy('t.views', 'DESC');
+
+    return queryBuilder.getMany();
+  }
+
+  async findByCreator(
+    creatorId: number,
+    pagination: PaginationParams,
+  ): Promise<IPaginatedResult<Tutorial>> {
+    const { limit = 10, page = 1 } = pagination;
+
+    const skip = (page - 1) * limit;
+
+    const [tutorials, total] = await this.repository.findAndCount({
       where: { creator: { id: creatorId } },
-      relations: ['creator', 'tags'],
+      relations: ['creator', 'tags', 'category'],
+      take: limit,
+      skip: skip,
+      order: {
+        createdAt: 'DESC',
+      },
     });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: tutorials,
+      meta: {
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+        limit,
+        page,
+        total,
+        totalPages,
+      },
+    };
   }
 
   async findWithRelations(id: number): Promise<Tutorial | null> {
     return this.repository.findOne({
       where: { id },
-      relations: ['creator', 'tags'],
+      relations: ['creator', 'tags', 'category'],
     });
   }
 
   async findAllWithRelations(): Promise<Tutorial[]> {
     return this.repository.find({
-      relations: ['creator', 'tags'],
+      relations: ['creator', 'tags', 'category'],
     });
   }
 

@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { IGamesRepository } from 'src/@types/interfaces/repositories/iGamesRepository.interface';
+import { PaginationParams } from 'src/@types/paginationParams.type';
 
 @Injectable()
 export class GamesService {
@@ -17,6 +18,14 @@ export class GamesService {
 
   findAll(page = 1, limit = 10) {
     return this.gameRepository.find(page, limit);
+  }
+
+  findByCreator(creatorId: number, pagination: PaginationParams) {
+    return this.gameRepository.findByCreator(creatorId, pagination);
+  }
+
+  findFeaturedGames() {
+    return this.gameRepository.findFeaturedGamesWithCreator();
   }
 
   findOne(id: number) {

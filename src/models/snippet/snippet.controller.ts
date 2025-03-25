@@ -6,12 +6,14 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import type { CreateSnippetDto } from './dto/create-snippet.dto';
 import type { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { SnippetService } from './snippet.service';
+import { PaginationParams } from 'src/@types/paginationParams.type';
 
 @Controller('snippet')
 export class SnippetController {
@@ -26,6 +28,15 @@ export class SnippetController {
   @Get('/featured')
   findFeaturedContent() {
     return this.snippetsService.findFeaturedContent();
+  }
+
+  @Get('/creator/:id')
+  @UseGuards(JwtAuthGuard)
+  findByCreator(
+    @Param('id') id: number,
+    @Query() pagination: PaginationParams,
+  ) {
+    return this.snippetsService.findByCreator(id, pagination);
   }
 
   @Get()

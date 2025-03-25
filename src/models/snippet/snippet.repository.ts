@@ -6,6 +6,7 @@ import type { CreateSnippetDto } from './dto/create-snippet.dto';
 import type { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
+import { PaginationParams } from 'src/@types/paginationParams.type';
 
 @Injectable()
 export class SnippetRepository implements ISnippetRepository {
@@ -13,11 +14,37 @@ export class SnippetRepository implements ISnippetRepository {
 
   constructor(private readonly dataSource: DataSource) {}
 
-  async findByCreator(creatorId: number): Promise<Snippet[]> {
-    return this.repository.find({
+  async findByCreator(
+    creatorId: number,
+    pagination: PaginationParams,
+  ): Promise<IPaginatedResult<Snippet>> {
+    const { limit = 10, page = 1 } = pagination;
+
+    const skip = (page - 1) * limit;
+
+    const [snippet, total] = await this.repository.findAndCount({
       where: { creator: { id: creatorId } },
-      relations: ['creator', 'lastModifier', 'modifiers', 'tags'],
+      relations: ['creator', 'tags'],
+      take: limit,
+      skip: skip,
+      order: {
+        createdAt: 'DESC',
+      },
     });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: snippet,
+      meta: {
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+        limit,
+        page,
+        total,
+        totalPages,
+      },
+    };
   }
 
   async findWithRelations(id: number): Promise<Snippet | null> {

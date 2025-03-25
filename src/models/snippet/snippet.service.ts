@@ -9,6 +9,7 @@ import { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { ISnippetRepository } from 'src/@types/interfaces/repositories/iSnippetRepository.interface';
 import { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
 import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubmissionsRepository';
+import { PaginationParams } from 'src/@types/paginationParams.type';
 
 @Injectable()
 export class SnippetService {
@@ -40,6 +41,10 @@ export class SnippetService {
     });
 
     return this.snippetsRepository.save(newSnippet);
+  }
+
+  findByCreator(creatorId: number, pagination: PaginationParams) {
+    return this.snippetsRepository.findByCreator(creatorId, pagination);
   }
 
   findFeaturedContent() {

@@ -62,8 +62,14 @@ export class UsersService {
     return this.usersRepository.find(page, limit);
   }
 
-  findOne(id: number) {
-    return this.usersRepository.findOneBy({ id });
+  async findOne(id: number) {
+    const user = await this.usersRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    return user;
   }
 
   async findUserByToken(token: string) {
@@ -73,7 +79,7 @@ export class UsersService {
     });
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const userId = Number(decoded.sub);
-    const user = await this.findOne(userId);
+    const user = await this.usersRepository.findUserWithRoles({ id: userId });
 
     if (!user) {
       throw new NotFoundException('Usuário não encontrado via token');

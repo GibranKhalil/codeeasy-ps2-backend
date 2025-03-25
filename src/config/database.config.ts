@@ -6,11 +6,7 @@ export const getDatabaseConfig = (
 ): TypeOrmModuleOptions => {
   return {
     type: 'postgres',
-    host: configService.get('SUPABASE_HOST'),
-    port: 5432,
-    username: configService.get('SUPABASE_USER'),
-    password: configService.get('SUPABASE_PASSWORD'),
-    database: configService.get('SUPABASE_DB'),
+    url: configService.get<string>('SUPABASE_URL'),
     entities: ['dist/models/**/*.{js,ts}'],
     migrations: ['dist/migrations/**/*.js'],
     ssl: {

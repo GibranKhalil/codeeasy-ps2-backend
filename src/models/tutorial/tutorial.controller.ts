@@ -7,11 +7,13 @@ import {
   Body,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { TutorialService } from './tutorial.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import type { CreateTutorialDto } from './dto/create-tutorial.dto';
 import type { UpdateTutorialDto } from './dto/update-tutorial.dto';
+import { PaginationParams } from 'src/@types/paginationParams.type';
 
 @Controller('tutorials')
 export class TutorialController {
@@ -26,6 +28,20 @@ export class TutorialController {
   @Get()
   findAll() {
     return this.tutorialsService.findAll();
+  }
+
+  @Get('/featured')
+  findFeaturedContent() {
+    return this.tutorialsService.findFeaturedTutorialsWithCreator();
+  }
+
+  @Get('/creator/:id')
+  @UseGuards(JwtAuthGuard)
+  findTutorialsByCreator(
+    @Param('id') id: number,
+    @Query() pagination: PaginationParams,
+  ) {
+    return this.tutorialsService.findByCreator(id, pagination);
   }
 
   @Get(':id')

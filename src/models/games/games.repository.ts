@@ -5,6 +5,8 @@ import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { Game } from './entities/game.entity';
 import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
+import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
+import { PaginationParams } from 'src/@types/paginationParams.type';
 
 @Injectable()
 export class GamesRepository implements IGamesRepository {
@@ -33,6 +35,65 @@ export class GamesRepository implements IGamesRepository {
         totalPages,
         hasNext: page < totalPages,
         hasPrevious: page > 1,
+      },
+    };
+  }
+
+  async findFeaturedGamesWithCreator(): Promise<Game[]> {
+    const queryBuilder = this.repository
+      .createQueryBuilder('g')
+      .leftJoinAndSelect('g.creator', 'creator')
+      .leftJoinAndSelect('g.category', 'category')
+      .select([
+        'g.id',
+        'g.pid',
+        'g.title',
+        'g.excerpt',
+        'g.version',
+        'g.downloads',
+        'g.fileSize',
+        'g.coverImage_url',
+        'creator.avatarUrl',
+        'creator.username',
+        'creator.pid',
+        'category.name',
+      ])
+      .limit(3)
+      .where('g.status = :status', { status: eContentStatus.APPROVED })
+      .orderBy('g.views', 'DESC');
+
+    return queryBuilder.getMany();
+  }
+
+  async findByCreator(
+    creatorId: number,
+    pagination: PaginationParams,
+  ): Promise<IPaginatedResult<Game>> {
+    const { limit = 10, page = 1 } = pagination;
+
+    const skip = (page - 1) * limit;
+
+    const [games, total] = await this.repository.findAndCount({
+      where: { creator: { id: creatorId } },
+      relations: ['creator', 'tags', 'category'],
+      take: limit,
+      skip: skip,
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: games,
+      meta: {
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+        limit,
+        page,
+        total,
+        totalPages,
       },
     };
   }

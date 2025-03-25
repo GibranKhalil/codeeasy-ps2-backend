@@ -13,6 +13,11 @@ export interface IUsersRepository
     User
   > {
   findByEmail(email: string): Promise<User | null>;
+  findUserWithRoles(identifier: {
+    id?: number;
+    email?: string;
+    pid?: string;
+  }): Promise<User | null>;
   findByUsername(username: string): Promise<User | null>;
   findByGithubId(githubId: string): Promise<User | null>;
 }

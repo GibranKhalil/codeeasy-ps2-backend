@@ -7,11 +7,13 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { GamesService } from './games.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { PaginationParams } from 'src/@types/paginationParams.type';
 
 @Controller('games')
 export class GamesController {
@@ -21,6 +23,20 @@ export class GamesController {
   @UseGuards(JwtAuthGuard)
   create(@Body() createGameDto: CreateGameDto) {
     return this.gamesService.create(createGameDto);
+  }
+
+  @Get('/featured')
+  findFeaturedContent() {
+    return this.gamesService.findFeaturedGames();
+  }
+
+  @Get('/creator/:id')
+  @UseGuards(JwtAuthGuard)
+  findByCreator(
+    @Param('id') id: number,
+    @Query() pagination: PaginationParams,
+  ) {
+    return this.gamesService.findByCreator(id, pagination);
   }
 
   @Get()
