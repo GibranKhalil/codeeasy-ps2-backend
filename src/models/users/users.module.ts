@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { UsersRepository } from './users.repository';
 import { JwtService } from '@nestjs/jwt';
+import { RolesRepository } from '../roles/roles.repository';
 
 @Module({
   controllers: [UsersController],
@@ -10,6 +11,7 @@ import { JwtService } from '@nestjs/jwt';
     UsersService,
     JwtService,
     { provide: 'IUsersRepository', useClass: UsersRepository },
+    { provide: 'IRoleRepository', useClass: RolesRepository },
   ],
 })
 export class UsersModule {}

@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -18,6 +19,8 @@ import type { UpdateUserDto } from './dto/update-user.dto';
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { LoginUserDto } from './dto/login-user.dto';
 import { GithubUser } from './dto/github-user.dto';
+import { PaginationParams } from 'src/@types/paginationParams.type';
+import { AddRoleToUserDto } from './dto/add-role-to-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -52,6 +55,12 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('roles')
+  @UseGuards(JwtAuthGuard)
+  findAllWithRole(@Query() pagination: PaginationParams) {
+    return this.usersService.findAllWithRole(pagination);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
@@ -67,6 +76,21 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
+  }
+
+  @Patch(':id/roles')
+  @UseGuards(JwtAuthGuard)
+  async addRole(@Param('id') userId: number, @Body() dto: AddRoleToUserDto) {
+    return this.usersService.addRoleToUser(userId, dto.roleId);
+  }
+
+  @Delete(':userId/:roleId')
+  @UseGuards(JwtAuthGuard)
+  async deleteRole(
+    @Param('userId') userId: number,
+    @Param('roleId') roleId: number,
+  ) {
+    return this.usersService.deleteRoleFromUser(userId, roleId);
   }
 
   @Delete(':id')

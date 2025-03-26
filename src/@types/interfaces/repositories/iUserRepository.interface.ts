@@ -3,6 +3,7 @@ import type { UpdateUserDto } from 'src/models/users/dto/update-user.dto';
 import type { User } from 'src/models/users/entities/user.entity';
 import type { IGenericRepository } from '../common/iGenericRepository.interface';
 import { IPaginatedResult } from '../common/iPaginatedResult.interface';
+import { PaginationParams } from 'src/@types/paginationParams.type';
 
 export interface IUsersRepository
   extends IGenericRepository<
@@ -20,4 +21,8 @@ export interface IUsersRepository
   }): Promise<User | null>;
   findByUsername(username: string): Promise<User | null>;
   findByGithubId(githubId: string): Promise<User | null>;
+  findAllWithRoles(
+    pagination: PaginationParams,
+  ): Promise<IPaginatedResult<User>>;
+  findOne(options: object): Promise<User | null>;
 }

@@ -76,7 +76,7 @@ export class User {
   @ManyToMany(() => Snippet, (snippet) => snippet.modifiers)
   snippetModifiers: Snippet[];
 
-  @ManyToMany(() => Role, (role: Role) => role.users)
+  @ManyToMany(() => Role, (role: Role) => role.users, { cascade: true })
   @JoinTable()
   roles: Role[];
 }

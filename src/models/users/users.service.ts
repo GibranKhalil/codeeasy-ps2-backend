@@ -14,12 +14,16 @@ import type { UpdateUserDto } from './dto/update-user.dto';
 import type { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
 import type { GithubUser } from './dto/github-user.dto';
 import { ConfigService } from '@nestjs/config';
+import { PaginationParams } from 'src/@types/paginationParams.type';
+import { IRoleRepository } from 'src/@types/interfaces/repositories/iRolesRepository.interface';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject('IUsersRepository')
     private readonly usersRepository: IUsersRepository,
+    @Inject('IRoleRepository')
+    private readonly rolesRepository: IRoleRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
@@ -62,6 +66,10 @@ export class UsersService {
     return this.usersRepository.find(page, limit);
   }
 
+  async findAllWithRole(pagination: PaginationParams) {
+    return this.usersRepository.findAllWithRoles(pagination);
+  }
+
   async findOne(id: number) {
     const user = await this.usersRepository.findOneBy({ id });
 
@@ -97,6 +105,57 @@ export class UsersService {
 
   remove(id: number) {
     return this.usersRepository.delete(id);
+  }
+
+  async addRoleToUser(userId: number, roleId: number) {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: ['roles'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    const role = await this.rolesRepository.findOneBy({ id: roleId });
+
+    if (!role) {
+      throw new NotFoundException('Role não encontrada');
+    }
+
+    const alreadyHasRole = user.roles.some((r) => r.id === role.id);
+
+    if (alreadyHasRole) {
+      throw new BadRequestException('O Usuáiro já têm essa role');
+    }
+
+    user.roles.push(role);
+    await this.usersRepository.save(user);
+
+    return user;
+  }
+
+  async deleteRoleFromUser(userId: number, roleId: number) {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: ['roles'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    const hasRole = user.roles.some((r) => r.id === Number(roleId));
+
+    if (!hasRole) {
+      throw new BadRequestException('Usuário não tem essa role');
+    }
+
+    user.roles = user.roles.filter((role) => role.id !== Number(roleId));
+
+    await this.usersRepository.save(user);
+
+    return user;
   }
 
   private async findUserByEmailOrUsername(

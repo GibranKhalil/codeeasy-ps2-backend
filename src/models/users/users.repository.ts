@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
 import type { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
 import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
+import { PaginationParams } from 'src/@types/paginationParams.type';
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
@@ -50,6 +51,48 @@ export class UsersRepository implements IUsersRepository {
     }
 
     return queryBuilder.getOne();
+  }
+
+  async findAllWithRoles(
+    pagination: PaginationParams,
+  ): Promise<IPaginatedResult<User>> {
+    const { limit = 10, page = 1 } = pagination;
+
+    const queryBuilder = this.repository
+      .createQueryBuilder('user')
+      .select([
+        'user.id',
+        'user.pid',
+        'user.username',
+        'user.email',
+        'user.bio',
+        'user.lastLoginAt',
+        'user.avatarUrl',
+        'user.createdAt',
+        'user.updatedAt',
+        'user.website',
+        'user.linkedin',
+        'user.github',
+      ])
+      .leftJoinAndSelect('user.roles', 'roles')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const total = await queryBuilder.getCount();
+    const data = await queryBuilder.getMany();
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      },
+    };
   }
 
   async findByUsername(username: string): Promise<User | null> {
@@ -118,6 +161,10 @@ export class UsersRepository implements IUsersRepository {
         id: true,
       },
     });
+  }
+
+  async findOne(options: object): Promise<User | null> {
+    return this.repository.findOne(options);
   }
 
   async update(id: number, updateUserDto: Partial<User>): Promise<void> {
