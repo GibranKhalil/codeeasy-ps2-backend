@@ -1,26 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
+import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubmissionsRepository';
+import { PaginationParams } from 'src/@types/paginationParams.type';
 
 @Injectable()
 export class SubmissionsService {
+  constructor(
+    @Inject('ISubmissionsRepository')
+    private readonly submissionRepository: ISubmissionsRepository,
+  ) {}
+
   create(createSubmissionDto: CreateSubmissionDto) {
-    return 'This action adds a new submission';
+    const newSubmission = this.submissionRepository.create(createSubmissionDto);
+
+    return this.submissionRepository.save(newSubmission);
   }
 
-  findAll() {
-    return `This action returns all submissions`;
+  findAll(pagination: PaginationParams) {
+    return this.submissionRepository.find(pagination.page, pagination.limit);
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} submission`;
+    return this.submissionRepository.findOneBy({ id });
   }
 
-  update(id: number, updateSubmissionDto: UpdateSubmissionDto) {
-    return `This action updates a #${id} submission`;
+  async update(id: number, updateSubmissionDto: UpdateSubmissionDto) {
+    return this.submissionRepository.update(id, updateSubmissionDto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} submission`;
+    return this.submissionRepository.delete(id);
   }
 }

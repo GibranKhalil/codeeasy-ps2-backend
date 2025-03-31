@@ -6,12 +6,20 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { SubmissionsService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
+import { PaginationParams } from 'src/@types/paginationParams.type';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { Roles } from 'src/decorators/roles.decorators';
+import { RolesGuard } from 'src/guards/roles.guard';
 
 @Controller('submissions')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin', 'moderator')
 export class SubmissionsController {
   constructor(private readonly submissionsService: SubmissionsService) {}
 
@@ -21,8 +29,8 @@ export class SubmissionsController {
   }
 
   @Get()
-  findAll() {
-    return this.submissionsService.findAll();
+  findAll(@Query() pagination: PaginationParams) {
+    return this.submissionsService.findAll(pagination);
   }
 
   @Get(':id')

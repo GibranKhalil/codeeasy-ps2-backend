@@ -11,15 +11,17 @@ export class UsersRepository implements IUsersRepository {
 
   constructor(private readonly dataSource: DataSource) {}
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.repository.findOne({ where: { email } });
-  }
-
-  async findUserWithRoles(identifier: {
-    id?: number;
-    email?: string;
-    pid?: string;
-  }): Promise<User | null> {
+  async findUserWithRoles(
+    identifier: {
+      id?: number;
+      email?: string;
+      pid?: string;
+      username?: string;
+    },
+    password?: {
+      withPassword: boolean;
+    },
+  ): Promise<User | null> {
     const queryBuilder = this.repository
       .createQueryBuilder('user')
       .select([
@@ -38,12 +40,20 @@ export class UsersRepository implements IUsersRepository {
       ])
       .leftJoinAndSelect('user.roles', 'roles');
 
+    if (password?.withPassword) {
+      queryBuilder.addSelect('user.password');
+    }
+
     if (identifier.id) {
       queryBuilder.where('user.id = :id', { id: identifier.id });
     } else if (identifier.email) {
       queryBuilder.where('user.email = :email', { email: identifier.email });
     } else if (identifier.pid) {
       queryBuilder.where('user.pid = :pid', { pid: identifier.pid });
+    } else if (identifier.username) {
+      queryBuilder.where('user.username :username', {
+        username: identifier.username,
+      });
     } else {
       throw new BadRequestException(
         'Envie o id, email ou pid do usuário para realizar a busca',
@@ -93,10 +103,6 @@ export class UsersRepository implements IUsersRepository {
         hasPrevious: page > 1,
       },
     };
-  }
-
-  async findByUsername(username: string): Promise<User | null> {
-    return this.repository.findOne({ where: { username } });
   }
 
   async findByGithubId(githubId: string): Promise<User | null> {

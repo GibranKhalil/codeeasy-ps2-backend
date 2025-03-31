@@ -13,13 +13,17 @@ export interface IUsersRepository
     UpdateUserDto,
     User
   > {
-  findByEmail(email: string): Promise<User | null>;
-  findUserWithRoles(identifier: {
-    id?: number;
-    email?: string;
-    pid?: string;
-  }): Promise<User | null>;
-  findByUsername(username: string): Promise<User | null>;
+  findUserWithRoles(
+    identifier: {
+      id?: number;
+      email?: string;
+      pid?: string;
+      username?: string;
+    },
+    password?: {
+      withPassword?: boolean;
+    },
+  ): Promise<User | null>;
   findByGithubId(githubId: string): Promise<User | null>;
   findAllWithRoles(
     pagination: PaginationParams,

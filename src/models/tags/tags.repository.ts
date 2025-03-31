@@ -57,6 +57,11 @@ export class TagsRepository implements ITagsRepository {
   async findOneBy(options: object): Promise<Tag | null> {
     return this.repository.findOne({ where: options });
   }
+
+  async findOne(options: object): Promise<Tag | null> {
+    return this.repository.findOne(options);
+  }
+
   async save(entity: CreateTagDto): Promise<Tag> {
     return this.repository.save(entity);
   }

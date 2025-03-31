@@ -36,6 +36,10 @@ export class SubmissionsRepository implements ISubmissionsRepository {
     });
   }
 
+  async findOne(options: object): Promise<Submission | null> {
+    return this.repository.findOne(options);
+  }
+
   async updateStatusAndComment(
     id: number,
     status: Submission['status'],
@@ -60,13 +64,33 @@ export class SubmissionsRepository implements ISubmissionsRepository {
   }
 
   async find(page = 1, limit = 10): Promise<IPaginatedResult<Submission>> {
-    const queryBuilder = this.repository.createQueryBuilder('submission');
+    const queryBuilder = this.repository
+      .createQueryBuilder('submission')
+      .select([
+        'submission.id',
+        'submission.comment',
+        'submission.status',
+        'submission.title',
+        'submission.submittedAt',
+        'submission.type',
+        'game.pid',
+        'snippet.pid',
+        'tutorial.pid',
+        'creator.username',
+        'creator.avatarUrl',
+        'creator.email',
+        'creator.pid',
+      ])
+      .leftJoinAndSelect('submission.game', 'game')
+      .leftJoinAndSelect('submission.snippet', 'snippet')
+      .leftJoinAndSelect('submission.tutorial', 'tutorial')
+      .leftJoinAndSelect('submission.creator', 'creator')
+      .orderBy('submission.submittedAt', 'DESC');
 
-    const total = await queryBuilder.getCount();
-    const data = await queryBuilder
+    const [data, total] = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
-      .getMany();
+      .getManyAndCount();
 
     const totalPages = Math.ceil(total / limit);
 

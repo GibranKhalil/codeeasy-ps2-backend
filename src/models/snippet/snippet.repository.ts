@@ -122,6 +122,10 @@ export class SnippetRepository implements ISnippetRepository {
     });
   }
 
+  async findOne(options: object): Promise<Snippet | null> {
+    return this.repository.findOne(options);
+  }
+
   async find(page = 1, limit = 10): Promise<IPaginatedResult<Snippet>> {
     return this.findAllWithCreatorRelation(page, limit);
   }

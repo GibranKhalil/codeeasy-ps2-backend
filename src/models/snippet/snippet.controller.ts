@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -53,6 +54,12 @@ export class SnippetController {
   @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() updateSnippetDto: UpdateSnippetDto) {
     return this.snippetsService.update(+id, updateSnippetDto);
+  }
+
+  @Patch('/pub/:id')
+  // @UseGuards(JwtAuthGuard)
+  publishSnippet(@Param('id') id: number) {
+    return this.snippetsService.publishSnippet(id);
   }
 
   @Delete(':id')

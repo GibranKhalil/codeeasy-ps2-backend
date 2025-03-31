@@ -41,6 +41,10 @@ export class RolesRepository implements IRoleRepository {
     return await this.repository.findOne({ where: options });
   }
 
+  async findOne(options: object): Promise<Role | null> {
+    return await this.repository.findOne(options);
+  }
+
   async save(entity: CreateRoleDto): Promise<Role> {
     return await this.repository.save(entity);
   }

@@ -113,6 +113,10 @@ export class TutorialRepository implements ITutorialsRepository {
     });
   }
 
+  async findOne(options: object): Promise<Tutorial | null> {
+    return this.repository.findOne(options);
+  }
+
   create(entity: CreateTutorialDto): Tutorial {
     return this.repository.create(entity);
   }

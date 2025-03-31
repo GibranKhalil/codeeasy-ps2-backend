@@ -1,6 +1,7 @@
 import { Game } from 'src/models/games/entities/game.entity';
 import { Role } from 'src/models/roles/entities/role.entity';
 import { Snippet } from 'src/models/snippet/entities/snippet.entity';
+import { Submission } from 'src/models/submissions/entities/submission.entity';
 import { Tutorial } from 'src/models/tutorial/entities/tutorial.entity';
 import {
   Column,
@@ -75,6 +76,9 @@ export class User {
 
   @ManyToMany(() => Snippet, (snippet) => snippet.modifiers)
   snippetModifiers: Snippet[];
+
+  @ManyToMany(() => Submission, (submission) => submission.creator)
+  submissions: Submission[];
 
   @ManyToMany(() => Role, (role: Role) => role.users, { cascade: true })
   @JoinTable()

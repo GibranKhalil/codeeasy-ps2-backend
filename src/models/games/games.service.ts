@@ -1,19 +1,54 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { IGamesRepository } from 'src/@types/interfaces/repositories/iGamesRepository.interface';
 import { PaginationParams } from 'src/@types/paginationParams.type';
+import { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
+import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubmissionsRepository';
 
 @Injectable()
 export class GamesService {
   constructor(
     @Inject('IGamesRepository')
     private readonly gameRepository: IGamesRepository,
+    @Inject('IUsersRepository')
+    private readonly usersRepository: IUsersRepository,
+    @Inject('ISubmissionsRepository')
+    private readonly submissionRepository: ISubmissionsRepository,
   ) {}
 
-  create(createGameDto: CreateGameDto) {
-    const newGame = this.gameRepository.create(createGameDto);
-    return this.gameRepository.save(newGame);
+  async create(createGameDto: CreateGameDto) {
+    if (!createGameDto.creatorId) {
+      throw new BadRequestException('É preciso que o jogo tenha um criador');
+    }
+
+    const creator = await this.usersRepository.findOneBy({
+      id: createGameDto.creatorId,
+    });
+
+    if (!creator) {
+      throw new NotFoundException('Criador não encontrado');
+    }
+
+    const newGame = this.gameRepository.create({ ...createGameDto, creator });
+
+    const game = await this.gameRepository.save(newGame);
+
+    const newSubmission = this.submissionRepository.create({
+      title: `Jogo: ${game.title}`,
+      type: 'game',
+      game,
+      creator,
+    });
+
+    await this.submissionRepository.save(newSubmission);
+
+    return game;
   }
 
   findAll(page = 1, limit = 10) {

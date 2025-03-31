@@ -16,6 +16,7 @@ import type { GithubUser } from './dto/github-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { PaginationParams } from 'src/@types/paginationParams.type';
 import { IRoleRepository } from 'src/@types/interfaces/repositories/iRolesRepository.interface';
+import { JwtPayload } from 'src/@types/interfaces/jwtPayload.interface';
 
 @Injectable()
 export class UsersService {
@@ -29,7 +30,9 @@ export class UsersService {
   ) {}
 
   async login(loginUserDto: LoginUserDto): Promise<{ access_token: string }> {
-    const user = await this.findUserByEmailOrUsername(loginUserDto);
+    const user = await this.findUserByEmailOrUsername(loginUserDto, {
+      withPassword: true,
+    });
     await this.validatePassword(loginUserDto.password, user.password);
     return await this.generateAuthToken(user);
   }
@@ -160,14 +163,21 @@ export class UsersService {
 
   private async findUserByEmailOrUsername(
     loginUserDto: LoginUserDto,
+    password?: { withPassword: boolean },
   ): Promise<User> {
     const { email, username } = loginUserDto;
     let user: User | null = null;
 
     if (email) {
-      user = await this.usersRepository.findByEmail(email);
+      user = await this.usersRepository.findUserWithRoles(
+        { email },
+        { withPassword: password?.withPassword },
+      );
     } else if (username) {
-      user = await this.usersRepository.findByUsername(username);
+      user = await this.usersRepository.findUserWithRoles(
+        { username },
+        { withPassword: password?.withPassword },
+      );
     }
 
     if (!user) {
@@ -191,7 +201,11 @@ export class UsersService {
   }
 
   private async generateAuthToken(user: User) {
-    const payload = { sub: user.id.toString(), username: user.username };
+    const payload: JwtPayload = {
+      sub: user.id.toString(),
+      username: user.username,
+      role: user.roles.map((role) => role.name),
+    };
     return {
       access_token: await this.jwtService.signAsync(payload, {
         secret: this.configService.get('JWT_SECRET'),

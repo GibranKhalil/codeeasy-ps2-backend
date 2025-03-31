@@ -54,6 +54,10 @@ export class CategoriesRepository implements ICategoriesRepository {
     };
   }
 
+  async findOne(options: object): Promise<Category | null> {
+    return await this.repository.findOne(options);
+  }
+
   async findOneBy(options: object): Promise<Category | null> {
     return await this.repository.findOne({ where: options });
   }

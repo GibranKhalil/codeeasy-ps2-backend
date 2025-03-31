@@ -39,6 +39,10 @@ export class GamesRepository implements IGamesRepository {
     };
   }
 
+  async findOne(options: object): Promise<Game | null> {
+    return await this.repository.findOne(options);
+  }
+
   async findFeaturedGamesWithCreator(): Promise<Game[]> {
     const queryBuilder = this.repository
       .createQueryBuilder('g')
