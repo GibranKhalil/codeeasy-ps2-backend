@@ -1,3 +1,4 @@
+import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import { Game } from 'src/models/games/entities/game.entity';
 import { Snippet } from 'src/models/snippet/entities/snippet.entity';
 import { Tutorial } from 'src/models/tutorial/entities/tutorial.entity';
@@ -13,7 +14,6 @@ import {
 } from 'typeorm';
 
 export type SubmissionType = 'snippet' | 'tutorial' | 'game';
-export type SubmissionStatus = 'pending' | 'approved' | 'rejected';
 
 @Entity('submissions')
 export class Submission {
@@ -26,18 +26,17 @@ export class Submission {
   @Column({ type: 'enum', enum: ['snippet', 'tutorial', 'game'] })
   type: SubmissionType;
 
-  @Column({
-    type: 'enum',
-    enum: ['pending', 'approved', 'rejected'],
-    default: 'pending',
-  })
-  status: SubmissionStatus;
+  @Column({ default: eContentStatus.PENDING })
+  status: eContentStatus;
 
   @Column({ nullable: true })
   comment: string;
 
   @CreateDateColumn()
   submittedAt: Date;
+
+  @CreateDateColumn()
+  resolvedAt: Date;
 
   @OneToOne(() => Snippet, { nullable: true, cascade: true })
   @JoinColumn()

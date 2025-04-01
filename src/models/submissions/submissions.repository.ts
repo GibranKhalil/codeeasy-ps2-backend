@@ -5,6 +5,7 @@ import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubm
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
 import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
+import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 
 @Injectable()
 export class SubmissionsRepository implements ISubmissionsRepository {
@@ -15,7 +16,7 @@ export class SubmissionsRepository implements ISubmissionsRepository {
   async findPending(): Promise<Submission[]> {
     return this.repository.find({
       where: {
-        status: 'pending',
+        status: eContentStatus.PENDING,
       },
     });
   }
@@ -74,17 +75,20 @@ export class SubmissionsRepository implements ISubmissionsRepository {
         'submission.submittedAt',
         'submission.type',
         'game.pid',
+        'game.description',
         'snippet.pid',
+        'snippet.code',
         'tutorial.pid',
+        'tutorial.content',
         'creator.username',
         'creator.avatarUrl',
         'creator.email',
         'creator.pid',
       ])
-      .leftJoinAndSelect('submission.game', 'game')
-      .leftJoinAndSelect('submission.snippet', 'snippet')
-      .leftJoinAndSelect('submission.tutorial', 'tutorial')
-      .leftJoinAndSelect('submission.creator', 'creator')
+      .leftJoin('submission.game', 'game')
+      .leftJoin('submission.snippet', 'snippet')
+      .leftJoin('submission.tutorial', 'tutorial')
+      .leftJoin('submission.creator', 'creator')
       .orderBy('submission.submittedAt', 'DESC');
 
     const [data, total] = await queryBuilder

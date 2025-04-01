@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import type { ITutorialsRepository } from 'src/@types/interfaces/repositories/iTutorialRepository.interface';
@@ -13,10 +14,11 @@ import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubm
 import { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
 import { ICategoriesRepository } from 'src/@types/interfaces/repositories/iCategoriesRepository.interface';
 import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
-import { SubmissionStatus } from '../submissions/entities/submission.entity';
+import { UpdateResult } from 'typeorm';
 
 @Injectable()
 export class TutorialService {
+  private readonly logger = new Logger(TutorialService.name);
   constructor(
     @Inject('ITutorialsRepository')
     private readonly tutorialRepository: ITutorialsRepository,
@@ -97,55 +99,58 @@ export class TutorialService {
     return this.tutorialRepository.update(id, updateTutorialDto);
   }
 
-  async publishTutorialOrReject(id: number, status: number) {
-    const tutorial = await this.tutorialRepository.findOneBy({ id });
+  async updateStatus(
+    pid: string,
+    status: eContentStatus,
+  ): Promise<UpdateResult> {
+    const entity = await this.findTutorialIdByPid(pid);
 
-    if (!tutorial) {
-      throw new NotFoundException('Tutorial não encontrado');
+    if (!entity) {
+      this.logAndThrowNotFound(pid);
     }
 
-    const submission = await this.submissionRepository.findOne({
-      where: {
-        type: 'tutorial',
-        tutorial: { id: tutorial.id },
-      },
-    });
-
-    if (!submission) {
-      throw new NotFoundException('Submissão não encontrada');
-    }
-
-    if (Number(status) === eContentStatus.APPROVED.valueOf()) {
-      await this.handleSubmissionStatus(submission.id, 'approved');
-    }
-
-    if (Number(status) === eContentStatus.REJECTED.valueOf()) {
-      await this.handleSubmissionStatus(submission.id, 'rejected');
-    }
-
-    const response = await this.tutorialRepository.update(tutorial.id, {
-      status: Number(status),
-    });
-
-    if (response.affected && response.affected <= 0) {
-      throw new InternalServerErrorException(
-        'Não foi possível atualizar o status do tutorial',
-      );
-    }
-
-    return response;
+    return this.performUpdate(entity.id, status, pid);
   }
 
-  private async handleSubmissionStatus(id: number, status: SubmissionStatus) {
-    const response = await this.submissionRepository.update(id, {
-      status,
-    });
+  private async findTutorialIdByPid(pid: string) {
+    return this.tutorialRepository.findOneBy({ pid });
+  }
 
-    if (response.affected && response.affected <= 0) {
-      throw new InternalServerErrorException(
-        'Não foi possível atualizar o status da submissão',
-      );
+  private logAndThrowNotFound(pid: string): never {
+    this.logger.warn(
+      `Tutorial com PID ${pid} não encontrado para atualização.`,
+    );
+    throw new NotFoundException(`Tutorial com PID ${pid} não encontrado.`);
+  }
+
+  private async performUpdate(
+    id: number,
+    status: eContentStatus,
+    pid: string,
+  ): Promise<UpdateResult> {
+    const updateResult = await this.tutorialRepository.update(id, { status });
+
+    if (!updateResult.affected || updateResult.affected <= 0) {
+      this.logAndThrowUpdateError(id, pid, status);
     }
+
+    this.logger.log(
+      `Status do Tutorial ${id} (PID: ${pid}) atualizado para ${status}.`,
+    );
+    return updateResult;
+  }
+
+  private logAndThrowUpdateError(
+    id: number,
+    pid: string,
+    status: eContentStatus,
+  ): never {
+    this.logger.error(
+      `Falha ao atualizar status do Tutorial ${id} (PID: ${pid}) para ${status}. Nenhum registro afetado.`,
+    );
+    throw new InternalServerErrorException(
+      'Não foi possível atualizar o status do tutorial.',
+    );
   }
 
   remove(id: number) {

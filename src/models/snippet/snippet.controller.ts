@@ -3,9 +3,7 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
-  Patch,
   Post,
   Put,
   Query,
@@ -16,9 +14,8 @@ import type { CreateSnippetDto } from './dto/create-snippet.dto';
 import type { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { SnippetService } from './snippet.service';
 import { PaginationParams } from 'src/@types/paginationParams.type';
-import { RolesGuard } from 'src/guards/roles.guard';
 import { Roles } from 'src/decorators/roles.decorators';
-import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
+import { RolesGuard } from 'src/guards/roles.guard';
 
 @Controller('snippet')
 export class SnippetController {
@@ -60,18 +57,8 @@ export class SnippetController {
     return this.snippetsService.update(+id, updateSnippetDto);
   }
 
-  @Patch('/pub/:id/:status')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'moderator')
-  publishSnippet(@Param('id') id: number, @Param('status') status: number) {
-    if (!Object.values(eContentStatus).includes(Number(status))) {
-      throw new NotFoundException('Status não encontrado');
-    }
-    return this.snippetsService.publishSnippetOrReject(id, status);
-  }
-
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'moderator')
   remove(@Param('id') id: string) {
     return this.snippetsService.remove(+id);

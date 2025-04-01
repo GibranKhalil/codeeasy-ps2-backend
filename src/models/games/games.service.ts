@@ -1,22 +1,17 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { IGamesRepository } from 'src/@types/interfaces/repositories/iGamesRepository.interface';
 import { PaginationParams } from 'src/@types/paginationParams.type';
 import { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
 import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubmissionsRepository';
-import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import { User } from '../users/entities/user.entity';
 import { Game } from './entities/game.entity';
-import { SubmissionStatus } from '../submissions/entities/submission.entity';
 
 @Injectable()
 export class GamesService {
+  private readonly logger = new Logger(GamesService.name);
+
   constructor(
     @Inject('IGamesRepository')
     private readonly gameRepository: IGamesRepository,
@@ -77,57 +72,6 @@ export class GamesService {
 
   update(id: number, updateGameDto: UpdateGameDto) {
     return this.gameRepository.update(id, updateGameDto);
-  }
-
-  async publishGameOrReject(id: number, status: number) {
-    const game = await this.gameRepository.findOneBy({ id });
-
-    if (!game) {
-      throw new NotFoundException('Jogo não encontrado');
-    }
-
-    const submission = await this.submissionRepository.findOne({
-      where: {
-        type: 'game',
-        game: { id: game.id },
-      },
-    });
-
-    if (!submission) {
-      throw new NotFoundException('Submissão não encontrada');
-    }
-
-    if (Number(status) === eContentStatus.APPROVED.valueOf()) {
-      await this.handleSubmissionStatus(submission.id, 'approved');
-    }
-
-    if (Number(status) === eContentStatus.REJECTED.valueOf()) {
-      await this.handleSubmissionStatus(submission.id, 'rejected');
-    }
-
-    const response = await this.gameRepository.update(game.id, {
-      status: Number(status),
-    });
-
-    if (response.affected && response.affected <= 0) {
-      throw new InternalServerErrorException(
-        'Não foi possível atualizar o status do jogo',
-      );
-    }
-
-    return response;
-  }
-
-  private async handleSubmissionStatus(id: number, status: SubmissionStatus) {
-    const response = await this.submissionRepository.update(id, {
-      status,
-    });
-
-    if (response.affected && response.affected <= 0) {
-      throw new InternalServerErrorException(
-        'Não foi possível atualizar o status da submissão',
-      );
-    }
   }
 
   remove(id: number) {

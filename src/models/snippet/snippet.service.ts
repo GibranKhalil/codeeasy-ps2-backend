@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateSnippetDto } from './dto/create-snippet.dto';
@@ -12,10 +13,12 @@ import { IUsersRepository } from 'src/@types/interfaces/repositories/iUserReposi
 import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubmissionsRepository';
 import { PaginationParams } from 'src/@types/paginationParams.type';
 import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
-import { SubmissionStatus } from '../submissions/entities/submission.entity';
+import { UpdateResult } from 'typeorm';
 
 @Injectable()
 export class SnippetService {
+  private readonly logger = new Logger(SnippetService.name);
+
   constructor(
     @Inject('ISnippetRepository')
     private readonly snippetsRepository: ISnippetRepository,
@@ -79,49 +82,56 @@ export class SnippetService {
     return this.snippetsRepository.update(id, updateSnippetDto);
   }
 
-  async publishSnippetOrReject(id: number, status: number) {
-    const snippet = await this.snippetsRepository.findOneBy({ id });
+  async updateStatus(
+    pid: string,
+    status: eContentStatus,
+  ): Promise<UpdateResult> {
+    const entity = await this.findSnippetIdByPid(pid);
 
-    if (!snippet) {
-      throw new NotFoundException('Snippet não encontrado');
+    if (!entity) {
+      this.logAndThrowNotFound(pid);
     }
 
-    const submission = await this.submissionRepository.findOne({
-      where: {
-        type: 'snippet',
-        snippet: { id: snippet.id },
-      },
-    });
-
-    if (!submission) {
-      throw new NotFoundException('Submissão não encontrada');
-    }
-
-    if (Number(status) === eContentStatus.APPROVED.valueOf()) {
-      await this.handleSubmissionStatus(submission.id, 'approved');
-    }
-
-    if (Number(status) === eContentStatus.REJECTED.valueOf()) {
-      await this.handleSubmissionStatus(submission.id, 'rejected');
-    }
-
-    const response = await this.snippetsRepository.update(snippet.id, {
-      status: Number(status),
-    });
-
-    return response;
+    return this.performUpdate(entity.id, status, pid);
   }
 
-  private async handleSubmissionStatus(id: number, status: SubmissionStatus) {
-    const response = await this.submissionRepository.update(id, {
-      status,
-    });
+  private async findSnippetIdByPid(pid: string) {
+    return await this.snippetsRepository.findOneBy({ pid });
+  }
 
-    if (response.affected && response.affected <= 0) {
-      throw new InternalServerErrorException(
-        'Não foi possível atualizar o status da submissão',
-      );
+  private logAndThrowNotFound(pid: string): never {
+    this.logger.warn(`Snippet com PID ${pid} não encontrado para atualização.`);
+    throw new NotFoundException(`Snippet com PID ${pid} não encontrado.`);
+  }
+
+  private async performUpdate(
+    id: number,
+    status: eContentStatus,
+    pid: string,
+  ): Promise<UpdateResult> {
+    const updateResult = await this.snippetsRepository.update(id, { status });
+
+    if (!updateResult.affected || updateResult.affected <= 0) {
+      this.logAndThrowUpdateError(id, pid, status);
     }
+
+    this.logger.log(
+      `Status do Snippet ${id} (PID: ${pid}) atualizado para ${status}.`,
+    );
+    return updateResult;
+  }
+
+  private logAndThrowUpdateError(
+    id: number,
+    pid: string,
+    status: eContentStatus,
+  ): never {
+    this.logger.error(
+      `Falha ao atualizar status do Snippet ${id} (PID: ${pid}) para ${status}. Nenhum registro afetado.`,
+    );
+    throw new InternalServerErrorException(
+      'Não foi possível atualizar o status do snippet.',
+    );
   }
 
   remove(id: number) {

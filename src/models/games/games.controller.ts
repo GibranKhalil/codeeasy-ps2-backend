@@ -9,16 +9,12 @@ import {
   UseGuards,
   Query,
   BadRequestException,
-  NotFoundException,
 } from '@nestjs/common';
 import { GamesService } from './games.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { PaginationParams } from 'src/@types/paginationParams.type';
-import { Roles } from 'src/decorators/roles.decorators';
-import { RolesGuard } from 'src/guards/roles.guard';
-import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 
 @Controller('games')
 export class GamesController {
@@ -61,17 +57,6 @@ export class GamesController {
   @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() updateGameDto: UpdateGameDto) {
     return this.gamesService.update(+id, updateGameDto);
-  }
-
-  @Patch('/pub/:id/:status')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'moderator')
-  publishSnippet(@Param('id') id: number, @Param('status') status: number) {
-    if (!Object.values(eContentStatus).includes(Number(status))) {
-      throw new NotFoundException('Status não encontrado');
-    }
-
-    return this.gamesService.publishGameOrReject(id, status);
   }
 
   @Delete(':id')
