@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, DeleteResult, UpdateResult } from 'typeorm';
 import { User } from './entities/user.entity';
 import type { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
 import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
@@ -173,11 +173,14 @@ export class UsersRepository implements IUsersRepository {
     return this.repository.findOne(options);
   }
 
-  async update(id: number, updateUserDto: Partial<User>): Promise<void> {
-    await this.repository.update(id, updateUserDto);
+  async update(
+    id: number,
+    updateUserDto: Partial<User>,
+  ): Promise<UpdateResult> {
+    return await this.repository.update(id, updateUserDto);
   }
 
-  async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
+  async delete(id: number): Promise<DeleteResult> {
+    return await this.repository.delete(id);
   }
 }

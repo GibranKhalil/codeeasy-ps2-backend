@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import type { ITutorialsRepository } from 'src/@types/interfaces/repositories/iTutorialRepository.interface';
@@ -11,6 +12,8 @@ import { PaginationParams } from 'src/@types/paginationParams.type';
 import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubmissionsRepository';
 import { IUsersRepository } from 'src/@types/interfaces/repositories/iUserRepository.interface';
 import { ICategoriesRepository } from 'src/@types/interfaces/repositories/iCategoriesRepository.interface';
+import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
+import { SubmissionStatus } from '../submissions/entities/submission.entity';
 
 @Injectable()
 export class TutorialService {
@@ -92,6 +95,57 @@ export class TutorialService {
 
   update(id: number, updateTutorialDto: UpdateTutorialDto) {
     return this.tutorialRepository.update(id, updateTutorialDto);
+  }
+
+  async publishTutorialOrReject(id: number, status: number) {
+    const tutorial = await this.tutorialRepository.findOneBy({ id });
+
+    if (!tutorial) {
+      throw new NotFoundException('Tutorial não encontrado');
+    }
+
+    const submission = await this.submissionRepository.findOne({
+      where: {
+        type: 'tutorial',
+        tutorial: { id: tutorial.id },
+      },
+    });
+
+    if (!submission) {
+      throw new NotFoundException('Submissão não encontrada');
+    }
+
+    if (Number(status) === eContentStatus.APPROVED.valueOf()) {
+      await this.handleSubmissionStatus(submission.id, 'approved');
+    }
+
+    if (Number(status) === eContentStatus.REJECTED.valueOf()) {
+      await this.handleSubmissionStatus(submission.id, 'rejected');
+    }
+
+    const response = await this.tutorialRepository.update(tutorial.id, {
+      status: Number(status),
+    });
+
+    if (response.affected && response.affected <= 0) {
+      throw new InternalServerErrorException(
+        'Não foi possível atualizar o status do tutorial',
+      );
+    }
+
+    return response;
+  }
+
+  private async handleSubmissionStatus(id: number, status: SubmissionStatus) {
+    const response = await this.submissionRepository.update(id, {
+      status,
+    });
+
+    if (response.affected && response.affected <= 0) {
+      throw new InternalServerErrorException(
+        'Não foi possível atualizar o status da submissão',
+      );
+    }
   }
 
   remove(id: number) {

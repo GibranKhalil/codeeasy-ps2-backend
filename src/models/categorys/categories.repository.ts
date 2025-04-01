@@ -1,6 +1,6 @@
 import { ICategoriesRepository } from 'src/@types/interfaces/repositories/iCategoriesRepository.interface';
 import { Category } from './entities/category.entity';
-import { DataSource } from 'typeorm';
+import { DataSource, DeleteResult, UpdateResult } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -67,10 +67,10 @@ export class CategoriesRepository implements ICategoriesRepository {
   create(entity: CreateCategoryDto): Category {
     return this.repository.create(entity);
   }
-  async update(id: number, entity: UpdateCategoryDto): Promise<void> {
-    await this.repository.update(id, entity);
+  async update(id: number, entity: UpdateCategoryDto): Promise<UpdateResult> {
+    return await this.repository.update(id, entity);
   }
-  async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
+  async delete(id: number): Promise<DeleteResult> {
+    return await this.repository.delete(id);
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { IRoleRepository } from 'src/@types/interfaces/repositories/iRolesRepository.interface';
-import { DataSource } from 'typeorm';
+import { DataSource, DeleteResult, UpdateResult } from 'typeorm';
 import { Role } from './entities/role.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -53,10 +53,10 @@ export class RolesRepository implements IRoleRepository {
     return this.repository.create(entity);
   }
 
-  async update(id: number, entity: UpdateRoleDto): Promise<void> {
-    await this.repository.update(id, entity);
+  async update(id: number, entity: UpdateRoleDto): Promise<UpdateResult> {
+    return await this.repository.update(id, entity);
   }
-  async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
+  async delete(id: number): Promise<DeleteResult> {
+    return await this.repository.delete(id);
   }
 }

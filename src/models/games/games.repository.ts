@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { IGamesRepository } from 'src/@types/interfaces/repositories/iGamesRepository.interface';
-import { DataSource } from 'typeorm';
+import { DataSource, DeleteResult, UpdateResult } from 'typeorm';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { Game } from './entities/game.entity';
@@ -111,10 +111,10 @@ export class GamesRepository implements IGamesRepository {
   create(entity: CreateGameDto): Game {
     return this.repository.create(entity);
   }
-  async update(id: number, entity: UpdateGameDto): Promise<void> {
-    await this.repository.update(id, entity);
+  async update(id: number, entity: UpdateGameDto): Promise<UpdateResult> {
+    return await this.repository.update(id, entity);
   }
-  async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
+  async delete(id: number): Promise<DeleteResult> {
+    return await this.repository.delete(id);
   }
 }

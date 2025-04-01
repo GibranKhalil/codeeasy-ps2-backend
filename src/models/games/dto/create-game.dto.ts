@@ -1,3 +1,4 @@
+import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import { Category } from 'src/models/categorys/entities/category.entity';
 import { Tag } from 'src/models/tags/entities/tag.entity';
 import { User } from 'src/models/users/entities/user.entity';
@@ -15,4 +16,5 @@ export class CreateGameDto {
   screenshots: string[];
   game_url: string;
   description: string;
+  status?: eContentStatus;
 }

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateSnippetDto } from './dto/create-snippet.dto';
@@ -11,6 +12,7 @@ import { IUsersRepository } from 'src/@types/interfaces/repositories/iUserReposi
 import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubmissionsRepository';
 import { PaginationParams } from 'src/@types/paginationParams.type';
 import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
+import { SubmissionStatus } from '../submissions/entities/submission.entity';
 
 @Injectable()
 export class SnippetService {
@@ -77,16 +79,12 @@ export class SnippetService {
     return this.snippetsRepository.update(id, updateSnippetDto);
   }
 
-  async publishSnippet(id: number) {
+  async publishSnippetOrReject(id: number, status: number) {
     const snippet = await this.snippetsRepository.findOneBy({ id });
 
     if (!snippet) {
       throw new NotFoundException('Snippet não encontrado');
     }
-
-    await this.snippetsRepository.update(snippet.id, {
-      status: eContentStatus.APPROVED,
-    });
 
     const submission = await this.submissionRepository.findOne({
       where: {
@@ -99,9 +97,31 @@ export class SnippetService {
       throw new NotFoundException('Submissão não encontrada');
     }
 
-    await this.submissionRepository.update(submission.id, {
-      status: 'approved',
+    if (Number(status) === eContentStatus.APPROVED.valueOf()) {
+      await this.handleSubmissionStatus(submission.id, 'approved');
+    }
+
+    if (Number(status) === eContentStatus.REJECTED.valueOf()) {
+      await this.handleSubmissionStatus(submission.id, 'rejected');
+    }
+
+    const response = await this.snippetsRepository.update(snippet.id, {
+      status: Number(status),
     });
+
+    return response;
+  }
+
+  private async handleSubmissionStatus(id: number, status: SubmissionStatus) {
+    const response = await this.submissionRepository.update(id, {
+      status,
+    });
+
+    if (response.affected && response.affected <= 0) {
+      throw new InternalServerErrorException(
+        'Não foi possível atualizar o status da submissão',
+      );
+    }
   }
 
   remove(id: number) {

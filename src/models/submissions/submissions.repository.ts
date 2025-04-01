@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, DeleteResult, UpdateResult } from 'typeorm';
 import { Submission } from './entities/submission.entity';
 import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubmissionsRepository';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
@@ -120,11 +120,11 @@ export class SubmissionsRepository implements ISubmissionsRepository {
     return this.repository.create(entity);
   }
 
-  async update(id: number, entity: UpdateSubmissionDto): Promise<void> {
-    await this.repository.update(id, entity);
+  async update(id: number, entity: UpdateSubmissionDto): Promise<UpdateResult> {
+    return await this.repository.update(id, entity);
   }
 
-  async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
+  async delete(id: number): Promise<DeleteResult> {
+    return await this.repository.delete(id);
   }
 }

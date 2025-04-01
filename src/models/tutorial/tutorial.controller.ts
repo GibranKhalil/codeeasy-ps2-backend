@@ -8,12 +8,17 @@ import {
   Param,
   UseGuards,
   Query,
+  Patch,
+  NotFoundException,
 } from '@nestjs/common';
 import { TutorialService } from './tutorial.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import type { CreateTutorialDto } from './dto/create-tutorial.dto';
 import type { UpdateTutorialDto } from './dto/update-tutorial.dto';
 import { PaginationParams } from 'src/@types/paginationParams.type';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { Roles } from 'src/decorators/roles.decorators';
+import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 
 @Controller('tutorials')
 export class TutorialController {
@@ -56,6 +61,17 @@ export class TutorialController {
     @Body() updateTutorialDto: UpdateTutorialDto,
   ) {
     return this.tutorialsService.update(+id, updateTutorialDto);
+  }
+
+  @Patch('/pub/:id/:status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'moderator')
+  publishSnippet(@Param('id') id: number, @Param('status') status: number) {
+    if (!Object.values(eContentStatus).includes(Number(status))) {
+      throw new NotFoundException('Status não encontrado');
+    }
+
+    return this.tutorialsService.publishTutorialOrReject(id, status);
   }
 
   @Delete(':id')

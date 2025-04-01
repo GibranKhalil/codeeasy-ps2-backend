@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, DeleteResult, UpdateResult } from 'typeorm';
 import { Snippet } from './entities/snippet.entity';
 import type { ISnippetRepository } from 'src/@types/interfaces/repositories/iSnippetRepository.interface';
 import type { CreateSnippetDto } from './dto/create-snippet.dto';
@@ -139,11 +139,11 @@ export class SnippetRepository implements ISnippetRepository {
     return this.repository.create(entity);
   }
 
-  async update(id: number, entity: UpdateSnippetDto): Promise<void> {
-    await this.repository.update(id, entity);
+  async update(id: number, entity: UpdateSnippetDto): Promise<UpdateResult> {
+    return await this.repository.update(id, entity);
   }
 
-  async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
+  async delete(id: number): Promise<DeleteResult> {
+    return await this.repository.delete(id);
   }
 }

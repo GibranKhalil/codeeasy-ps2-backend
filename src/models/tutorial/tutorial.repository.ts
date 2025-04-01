@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, DeleteResult, UpdateResult } from 'typeorm';
 import { Tutorial } from './entities/tutorial.entity';
 import type { ITutorialsRepository } from 'src/@types/interfaces/repositories/iTutorialRepository.interface';
 import type { CreateTutorialDto } from './dto/create-tutorial.dto';
@@ -125,11 +125,11 @@ export class TutorialRepository implements ITutorialsRepository {
     return this.repository.save(entity);
   }
 
-  async update(id: number, entity: UpdateTutorialDto): Promise<void> {
-    await this.repository.update(id, entity);
+  async update(id: number, entity: UpdateTutorialDto): Promise<UpdateResult> {
+    return await this.repository.update(id, entity);
   }
 
-  async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
+  async delete(id: number): Promise<DeleteResult> {
+    return await this.repository.delete(id);
   }
 }
