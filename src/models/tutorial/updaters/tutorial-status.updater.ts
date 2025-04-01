@@ -3,20 +3,20 @@ import {
   Logger,
   NotFoundException,
   InternalServerErrorException,
+  Inject,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult } from 'typeorm';
+import { UpdateResult } from 'typeorm';
 import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import { IContentStatusUpdater } from 'src/@types/interfaces/factory/iContentStatusUpdater.interface';
-import { Tutorial } from '../entities/tutorial.entity';
+import { ITutorialsRepository } from 'src/@types/interfaces/repositories/iTutorialRepository.interface';
 
 @Injectable()
 export class TutorialStatusUpdater implements IContentStatusUpdater {
   private readonly logger = new Logger(TutorialStatusUpdater.name);
 
   constructor(
-    @InjectRepository(Tutorial)
-    private readonly tutorialRepository: Repository<Tutorial>,
+    @Inject('ITutorialsRepository')
+    private readonly tutorialRepository: ITutorialsRepository,
   ) {}
 
   async updateStatus(
