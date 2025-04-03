@@ -49,9 +49,9 @@ export class GamesController {
       );
     }
 
-    if (!files.screenshots || files.screenshots.length < 3) {
+    if (!files.screenshots || files.screenshots.length < 1) {
       throw new BadRequestException(
-        'É preciso que o jogo tenha pelo menos 3 screenshots',
+        'É preciso que o jogo tenha pelo menos 1 screenshot',
       );
     }
 

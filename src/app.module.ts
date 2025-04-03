@@ -13,10 +13,12 @@ import { getDatabaseConfig } from './config/database.config';
 import { JwtStrategy } from './models/users/strategies/jwt.strategy';
 import { SubmissionsModule } from './models/submissions/submissions.module';
 import { StorageModule } from './models/storage/storage.module';
+import { existsSync } from 'fs';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: existsSync('.env.local') ? '.env.local' : '.env',
       isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
