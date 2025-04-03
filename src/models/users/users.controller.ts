@@ -78,8 +78,8 @@ export class UsersController {
       );
     }
 
-    const avatar = files.avatar?.[0] || null;
-    const coverImage = files.coverImage?.[0] || null;
+    const avatar = files.avatar?.[0];
+    const coverImage = files.coverImage?.[0];
 
     if (!avatar && !coverImage) {
       throw new BadRequestException(

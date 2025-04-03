@@ -53,7 +53,7 @@ export class User {
   avatarUrl?: string;
 
   @Column({ nullable: true })
-  coverImageUrl: string;
+  coverImageUrl?: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

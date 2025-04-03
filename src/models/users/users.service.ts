@@ -111,19 +111,33 @@ export class UsersService {
 
   async updateUserImage(
     id: number,
-    avatar: Express.Multer.File,
-    coverImage: Express.Multer.File,
+    avatar?: Express.Multer.File,
+    coverImage?: Express.Multer.File,
   ) {
     let coverImage_url: string = '';
     let avatar_url: string = '';
 
     try {
+      const user = await this.usersRepository.findOne({ where: { id } });
+
+      if (!user) {
+        throw new NotFoundException('Usuário não encontrado!');
+      }
       if (coverImage) {
         coverImage_url = await this.storageService.uploadFile(
           coverImage.buffer,
           coverImage.originalname,
           coverImage.mimetype,
         );
+
+        if (user.coverImageUrl) {
+          const coverImageKey = user.coverImageUrl.split('/').pop();
+          if (coverImageKey) {
+            await this.storageService.deleteFile(coverImageKey);
+          }
+        }
+      } else {
+        coverImage_url = user.coverImageUrl as string;
       }
 
       if (avatar) {
@@ -132,33 +146,33 @@ export class UsersService {
           avatar.originalname,
           avatar.mimetype,
         );
+
+        if (user.avatarUrl) {
+          const avatarKey = user.avatarUrl.split('/').pop();
+          if (avatarKey) {
+            await this.storageService.deleteFile(avatarKey);
+          }
+        }
+      } else {
+        avatar_url = user.avatarUrl as string;
       }
 
-      const newUserData = await this.usersRepository.update(id, {
+      const updatedUser = await this.usersRepository.update(id, {
         avatarUrl: avatar_url,
         coverImageUrl: coverImage_url,
       });
 
-      if (!newUserData) {
+      if (!updatedUser) {
         throw new InternalServerErrorException(
-          'Erro ao atualizar imagens do usuário! Tente novamente',
+          'Erro ao atualizar imagens do usuário! Tente novamente.',
         );
       }
 
-      return newUserData;
+      return updatedUser;
     } catch (error) {
-      console.error('Erro ao atualizar foto do usuário:', error);
-
-      if (coverImage_url) {
-        await this.storageService.deleteFile(coverImage_url.split('/').pop()!);
-      }
-
-      if (avatar_url) {
-        await this.storageService.deleteFile(avatar_url.split('/').pop()!);
-      }
-
+      console.error('Erro ao atualizar imagem do usuário:', error);
       throw new InternalServerErrorException(
-        'Erro ao atualizar foto! Tente novamente.',
+        'Erro ao atualizar imagem! Tente novamente.',
       );
     }
   }
