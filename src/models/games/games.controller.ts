@@ -30,6 +30,7 @@ export class GamesController {
       { name: 'screenshots', maxCount: 5 },
     ]),
   )
+  @UseGuards(JwtAuthGuard)
   create(
     @UploadedFiles()
     files: {

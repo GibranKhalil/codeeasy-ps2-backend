@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -9,7 +10,9 @@ import {
   Query,
   Req,
   Res,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { UsersService } from './users.service';
@@ -21,6 +24,7 @@ import type { LoginUserDto } from './dto/login-user.dto';
 import { GithubUser } from './dto/github-user.dto';
 import { PaginationParams } from 'src/@types/paginationParams.type';
 import { AddRoleToUserDto } from './dto/add-role-to-user.dto';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UsersController {
@@ -47,6 +51,47 @@ export class UsersController {
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @Patch('/profile/pictures/:id')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'avatar', maxCount: 1 },
+      { name: 'coverImage', maxCount: 1 },
+    ]),
+  )
+  async updateProfileImages(
+    @UploadedFiles()
+    files: {
+      avatar?: Express.Multer.File[];
+      coverImage?: Express.Multer.File[];
+    },
+    @Param('id') id: number,
+  ) {
+    if (!id || isNaN(Number(id))) {
+      throw new BadRequestException('O identificador do usuário é inválido.');
+    }
+
+    if (!files || (!files.avatar && !files.coverImage)) {
+      throw new BadRequestException(
+        'É preciso enviar ao menos a foto de perfil ou a foto de capa.',
+      );
+    }
+
+    const avatar = files.avatar?.[0] || null;
+    const coverImage = files.coverImage?.[0] || null;
+
+    if (!avatar && !coverImage) {
+      throw new BadRequestException(
+        'Nenhuma imagem válida foi enviada. Verifique os arquivos.',
+      );
+    }
+
+    return this.usersService.updateUserImage(
+      id,
+      avatar as Express.Multer.File,
+      coverImage as Express.Multer.File,
+    );
   }
 
   @Get()

@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
   Inject,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -17,6 +18,7 @@ import { ConfigService } from '@nestjs/config';
 import { PaginationParams } from 'src/@types/paginationParams.type';
 import { IRoleRepository } from 'src/@types/interfaces/repositories/iRolesRepository.interface';
 import { JwtPayload } from 'src/@types/interfaces/jwtPayload.interface';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class UsersService {
@@ -27,6 +29,7 @@ export class UsersService {
     private readonly rolesRepository: IRoleRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly storageService: StorageService,
   ) {}
 
   async login(loginUserDto: LoginUserDto): Promise<{ access_token: string }> {
@@ -104,6 +107,60 @@ export class UsersService {
       updateUserDto.password = await this.hashPassword(updateUserDto.password);
     }
     return this.usersRepository.update(id, updateUserDto);
+  }
+
+  async updateUserImage(
+    id: number,
+    avatar: Express.Multer.File,
+    coverImage: Express.Multer.File,
+  ) {
+    let coverImage_url: string = '';
+    let avatar_url: string = '';
+
+    try {
+      if (coverImage) {
+        coverImage_url = await this.storageService.uploadFile(
+          coverImage.buffer,
+          coverImage.originalname,
+          coverImage.mimetype,
+        );
+      }
+
+      if (avatar) {
+        avatar_url = await this.storageService.uploadFile(
+          avatar.buffer,
+          avatar.originalname,
+          avatar.mimetype,
+        );
+      }
+
+      const newUserData = await this.usersRepository.update(id, {
+        avatarUrl: avatar_url,
+        coverImageUrl: coverImage_url,
+      });
+
+      if (!newUserData) {
+        throw new InternalServerErrorException(
+          'Erro ao atualizar imagens do usuário! Tente novamente',
+        );
+      }
+
+      return newUserData;
+    } catch (error) {
+      console.error('Erro ao atualizar foto do usuário:', error);
+
+      if (coverImage_url) {
+        await this.storageService.deleteFile(coverImage_url.split('/').pop()!);
+      }
+
+      if (avatar_url) {
+        await this.storageService.deleteFile(avatar_url.split('/').pop()!);
+      }
+
+      throw new InternalServerErrorException(
+        'Erro ao atualizar foto! Tente novamente.',
+      );
+    }
   }
 
   remove(id: number) {

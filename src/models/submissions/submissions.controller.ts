@@ -54,12 +54,12 @@ export class SubmissionsController {
     @Body() updateSubmissionDto: UpdateSubmissionDto,
   ) {
     if (
-      !updateSubmissionDto.game ||
-      !updateSubmissionDto.snippet ||
+      !updateSubmissionDto.game &&
+      !updateSubmissionDto.snippet &&
       !updateSubmissionDto.tutorial
     ) {
       throw new BadRequestException(
-        'É necessário que a submissão esteja envolvida com um conteúdo',
+        'É necessário que a submissão esteja envolvida com pelo menos um conteúdo',
       );
     }
 

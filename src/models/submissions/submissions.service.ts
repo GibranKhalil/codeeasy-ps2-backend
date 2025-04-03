@@ -50,10 +50,6 @@ export class SubmissionsService {
     id: number,
     updateSubmissionDto: UpdateSubmissionDto,
   ): Promise<Submission> {
-    this.logger.log(
-      `Resolvendo submissão ID: ${id} com DTO: ${JSON.stringify(updateSubmissionDto)}`,
-    );
-
     const submission = await this.findSubmissionById(id);
     this.validateStatus(updateSubmissionDto.status as eContentStatus);
 
@@ -63,7 +59,7 @@ export class SubmissionsService {
     };
 
     if (!updater || !pid) {
-      this.logAndThrowInvalidContent(id);
+      this.logAndThrowInvalidContent();
     }
 
     return this.processSubmissionResolution(
@@ -77,7 +73,6 @@ export class SubmissionsService {
   private async findSubmissionById(id: number): Promise<Submission> {
     const submission = await this.submissionRepository.findOneBy({ id });
     if (!submission) {
-      this.logger.warn(`Submissão ID: ${id} não encontrada.`);
       throw new NotFoundException(`Submissão com ID ${id} não encontrada.`);
     }
     return submission;
@@ -112,10 +107,7 @@ export class SubmissionsService {
     return null;
   }
 
-  private logAndThrowInvalidContent(id: number): never {
-    this.logger.warn(
-      `Nenhum conteúdo (game, snippet, tutorial) foi especificado no DTO para a submissão ${id}.`,
-    );
+  private logAndThrowInvalidContent(): never {
     throw new BadRequestException(
       'Nenhum conteúdo (game, snippet, tutorial) foi fornecido para atualização.',
     );
@@ -140,9 +132,6 @@ export class SubmissionsService {
     }
 
     const updatedSubmission = await this.submissionRepository.save(submission);
-    this.logger.log(
-      `Submissão ID: ${submission.id} resolvida com status: ${updateSubmissionDto.status}.`,
-    );
     return updatedSubmission;
   }
 

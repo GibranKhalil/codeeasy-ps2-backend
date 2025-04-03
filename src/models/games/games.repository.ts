@@ -25,6 +25,7 @@ export class GamesRepository implements IGamesRepository {
     const data = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
+      .where('game.status = :status', { status: eContentStatus.APPROVED })
       .getMany();
 
     const totalPages = Math.ceil(total / limit);

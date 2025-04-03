@@ -74,21 +74,37 @@ export class SubmissionsRepository implements ISubmissionsRepository {
         'submission.title',
         'submission.submittedAt',
         'submission.type',
+        'submission.resolvedAt',
         'game.pid',
         'game.description',
+        'game.version',
+        'game.fileSize',
+        'game.excerpt',
+        'game.screenshots',
+        'game.tags',
         'snippet.pid',
         'snippet.code',
+        'snippet.language',
         'tutorial.pid',
         'tutorial.content',
+        'tutorial.tags',
+        'tutorial.excerpt',
+        'tutorial.readTime',
         'creator.username',
         'creator.avatarUrl',
         'creator.email',
         'creator.pid',
+        'gameCategory.id',
+        'gameCategory.name',
+        'tutorialCategory.id',
+        'tutorialCategory.name',
       ])
       .leftJoin('submission.game', 'game')
       .leftJoin('submission.snippet', 'snippet')
       .leftJoin('submission.tutorial', 'tutorial')
       .leftJoin('submission.creator', 'creator')
+      .leftJoin('game.category', 'gameCategory')
+      .leftJoin('tutorial.category', 'tutorialCategory')
       .orderBy('submission.submittedAt', 'DESC');
 
     const [data, total] = await queryBuilder

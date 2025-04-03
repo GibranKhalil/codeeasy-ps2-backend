@@ -8,4 +8,5 @@ export class CreateUserDto {
   linkedin?: string;
   github?: string;
   website?: string;
+  coverImageUrl?: string;
 }

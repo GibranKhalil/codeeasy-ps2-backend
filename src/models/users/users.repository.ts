@@ -37,6 +37,7 @@ export class UsersRepository implements IUsersRepository {
         'user.website',
         'user.linkedin',
         'user.github',
+        'user.coverImageUrl',
       ])
       .leftJoinAndSelect('user.roles', 'roles');
 
@@ -165,6 +166,7 @@ export class UsersRepository implements IUsersRepository {
         createdAt: true,
         updatedAt: true,
         id: true,
+        coverImageUrl: true,
       },
     });
   }
