@@ -15,7 +15,10 @@ export class GamesRepository implements IGamesRepository {
   constructor(private readonly dataSource: DataSource) {}
 
   async find(page = 1, limit = 10): Promise<IPaginatedResult<Game>> {
-    const queryBuilder = this.repository.createQueryBuilder('game');
+    const queryBuilder = this.repository
+      .createQueryBuilder('game')
+      .leftJoinAndSelect('game.category', 'category')
+      .leftJoinAndSelect('game.creator', 'creator');
 
     const total = await queryBuilder.getCount();
 
@@ -79,7 +82,7 @@ export class GamesRepository implements IGamesRepository {
 
     const [games, total] = await this.repository.findAndCount({
       where: { creator: { id: creatorId } },
-      relations: ['creator', 'tags', 'category'],
+      relations: ['creator', 'category'],
       take: limit,
       skip: skip,
       order: {

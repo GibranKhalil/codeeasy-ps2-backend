@@ -9,24 +9,56 @@ import {
   UseGuards,
   Query,
   BadRequestException,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { GamesService } from './games.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { PaginationParams } from 'src/@types/paginationParams.type';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 @Controller('games')
 export class GamesController {
   constructor(private readonly gamesService: GamesService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
-  create(@Body() createGameDto: CreateGameDto) {
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'coverImage', maxCount: 1 },
+      { name: 'screenshots', maxCount: 5 },
+    ]),
+  )
+  create(
+    @UploadedFiles()
+    files: {
+      screenshots?: Express.Multer.File[];
+      coverImage?: Express.Multer.File[];
+    },
+    @Body() createGameDto: CreateGameDto,
+  ) {
     if (!createGameDto.creatorId) {
       throw new BadRequestException('É preciso que o jogo tenha um criador');
     }
-    return this.gamesService.create(createGameDto);
+
+    if (!files.coverImage?.[0]) {
+      throw new BadRequestException(
+        'É preciso que o jogo tenha uma foto de capa',
+      );
+    }
+
+    if (!files.screenshots || files.screenshots.length < 3) {
+      throw new BadRequestException(
+        'É preciso que o jogo tenha pelo menos 3 screenshots',
+      );
+    }
+
+    return this.gamesService.create(
+      createGameDto,
+      files.coverImage[0],
+      files.screenshots,
+    );
   }
 
   @Get('/featured')
@@ -53,6 +85,10 @@ export class GamesController {
     return this.gamesService.findOne(+id);
   }
 
+  @Get('pid/:pid')
+  findOneByPid(@Param('pid') pid: string) {
+    return this.gamesService.findOne(0, pid);
+  }
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() updateGameDto: UpdateGameDto) {

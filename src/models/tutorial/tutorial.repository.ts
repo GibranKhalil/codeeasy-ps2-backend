@@ -77,7 +77,7 @@ export class TutorialRepository implements ITutorialsRepository {
 
     const [tutorials, total] = await this.repository.findAndCount({
       where: { creator: { id: creatorId } },
-      relations: ['creator', 'tags', 'category'],
+      relations: ['creator', 'category'],
       take: limit,
       skip: skip,
       order: {
@@ -103,13 +103,13 @@ export class TutorialRepository implements ITutorialsRepository {
   async findWithRelations(id: number): Promise<Tutorial | null> {
     return this.repository.findOne({
       where: { id },
-      relations: ['creator', 'tags', 'category'],
+      relations: ['creator', 'category'],
     });
   }
 
   async findAllWithRelations(): Promise<Tutorial[]> {
     return this.repository.find({
-      relations: ['creator', 'tags', 'category'],
+      relations: ['creator', 'category'],
     });
   }
 

@@ -1,14 +1,11 @@
 import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import { Interactions } from 'src/@types/interactions.type';
 import { Category } from 'src/models/categorys/entities/category.entity';
-import { Tag } from 'src/models/tags/entities/tag.entity';
 import { User } from 'src/models/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -64,7 +61,6 @@ export class Tutorial {
   })
   category: Category;
 
-  @ManyToMany(() => Tag, (tag) => tag.tutorials)
-  @JoinTable()
-  tags: Tag[];
+  @Column({ type: 'varchar', array: true })
+  tags: string[];
 }

@@ -2,14 +2,12 @@ import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import type { eSnippetEngine } from 'src/@types/enums/eSnippetEngine.enum';
 import type { eSnippetLanguage } from 'src/@types/enums/eSnippetLanguage.enum';
 import type { Interactions } from 'src/@types/interactions.type';
-import { Tag } from 'src/models/tags/entities/tag.entity';
 import { User } from 'src/models/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
-  JoinTable,
   ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -74,7 +72,6 @@ export class Snippet {
   @ManyToMany(() => User, (user) => user.snippetModifiers)
   modifiers: User[];
 
-  @ManyToMany(() => Tag, (tag) => tag.snippets)
-  @JoinTable()
-  tags: Tag[];
+  @Column({ type: 'varchar', array: true })
+  tags: string[];
 }

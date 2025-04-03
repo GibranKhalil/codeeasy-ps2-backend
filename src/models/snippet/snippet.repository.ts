@@ -24,7 +24,7 @@ export class SnippetRepository implements ISnippetRepository {
 
     const [snippet, total] = await this.repository.findAndCount({
       where: { creator: { id: creatorId } },
-      relations: ['creator', 'tags'],
+      relations: ['creator'],
       take: limit,
       skip: skip,
       order: {
@@ -50,7 +50,7 @@ export class SnippetRepository implements ISnippetRepository {
   async findWithRelations(id: number): Promise<Snippet | null> {
     return this.repository.findOne({
       where: { id },
-      relations: ['creator', 'lastModifier', 'modifiers', 'tags'],
+      relations: ['creator', 'lastModifier', 'modifiers'],
     });
   }
 
@@ -118,7 +118,7 @@ export class SnippetRepository implements ISnippetRepository {
 
   async findAllWithRelations(): Promise<Snippet[]> {
     return this.repository.find({
-      relations: ['creator', 'lastModifier', 'modifiers', 'tags'],
+      relations: ['creator', 'lastModifier', 'modifiers'],
     });
   }
 
