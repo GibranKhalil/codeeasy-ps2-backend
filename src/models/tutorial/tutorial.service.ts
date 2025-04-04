@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -15,6 +14,9 @@ import { IUsersRepository } from 'src/@types/interfaces/repositories/iUserReposi
 import { ICategoriesRepository } from 'src/@types/interfaces/repositories/iCategoriesRepository.interface';
 import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import { UpdateResult } from 'typeorm';
+import { Tutorial } from './entities/tutorial.entity';
+import { User } from '../users/entities/user.entity';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class TutorialService {
@@ -28,19 +30,19 @@ export class TutorialService {
     private readonly categoriesRepository: ICategoriesRepository,
     @Inject('ISubmissionsRepository')
     private readonly submissionRepository: ISubmissionsRepository,
+    private readonly storageService: StorageService,
   ) {}
 
-  async create(createTutorialDto: CreateTutorialDto) {
-    if (!createTutorialDto.creatorId) {
-      throw new BadRequestException(
-        'É preciso que o tutorial tenha um criador',
-      );
-    }
+  async create(
+    createTutorialDto: CreateTutorialDto,
+    coverImage: Express.Multer.File,
+  ) {
+    const category = await this.categoriesRepository.findOneBy({
+      id: createTutorialDto.categoryId,
+    });
 
-    if (!createTutorialDto.categoryId) {
-      throw new BadRequestException(
-        'É preciso que o tutorial tenha uma categoria',
-      );
+    if (!category) {
+      throw new NotFoundException('Categoria não encontrada');
     }
 
     const creator = await this.usersRepository.findOneBy({
@@ -51,22 +53,56 @@ export class TutorialService {
       throw new NotFoundException('Criador não encontrado');
     }
 
-    const category = await this.categoriesRepository.findOneBy({
-      id: createTutorialDto.categoryId,
-    });
+    const tutorial = await this.createAndSubmitTutorial(
+      { ...createTutorialDto, category, creator },
+      coverImage,
+    );
 
-    if (!category) {
-      throw new NotFoundException('Categoria não encontrada');
+    await this.createSubmissionForTutorial(tutorial, creator);
+
+    return tutorial;
+  }
+
+  async createAndSubmitTutorial(
+    createTutorialDto: CreateTutorialDto,
+    coverImage: Express.Multer.File,
+  ) {
+    let coverImage_url: string = '';
+
+    try {
+      if (coverImage) {
+        coverImage_url = await this.storageService.uploadFile(
+          coverImage.buffer,
+          coverImage.originalname,
+          coverImage.mimetype,
+        );
+      }
+
+      const newTutorial = this.tutorialRepository.create({
+        ...createTutorialDto,
+        coverImage_url,
+        tags: Array.isArray(createTutorialDto.tags)
+          ? createTutorialDto.tags
+          : String(createTutorialDto.tags)?.split(',') || [],
+      });
+
+      const tutorial = await this.tutorialRepository.save(newTutorial);
+
+      return tutorial;
+    } catch (error) {
+      console.error('Erro ao criar jogo:', error);
+
+      if (coverImage_url) {
+        await this.storageService.deleteFile(coverImage_url.split('/').pop()!);
+      }
+
+      throw new InternalServerErrorException(
+        'Erro ao criar tutorial! Tente novamente.',
+      );
     }
+  }
 
-    const newTutorial = this.tutorialRepository.create({
-      ...createTutorialDto,
-      creator,
-      category,
-    });
-
-    const tutorial = await this.tutorialRepository.save(newTutorial);
-
+  async createSubmissionForTutorial(tutorial: Tutorial, creator: User) {
     const newSubmission = this.submissionRepository.create({
       title: `Tutorial: ${tutorial.title}`,
       type: 'tutorial',
@@ -74,9 +110,7 @@ export class TutorialService {
       creator,
     });
 
-    await this.submissionRepository.save(newSubmission);
-
-    return tutorial;
+    return await this.submissionRepository.save(newSubmission);
   }
 
   findFeaturedTutorialsWithCreator() {

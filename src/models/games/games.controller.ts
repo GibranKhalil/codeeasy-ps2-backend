@@ -27,7 +27,7 @@ export class GamesController {
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'coverImage', maxCount: 1 },
-      { name: 'screenshots', maxCount: 5 },
+      { name: 'screenshots', maxCount: 3 },
     ]),
   )
   @UseGuards(JwtAuthGuard)

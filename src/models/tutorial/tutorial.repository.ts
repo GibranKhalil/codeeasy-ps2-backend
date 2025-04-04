@@ -17,11 +17,33 @@ export class TutorialRepository implements ITutorialsRepository {
   async find(page = 1, limit = 10): Promise<IPaginatedResult<Tutorial>> {
     const queryBuilder = this.repository.createQueryBuilder('tutorial');
 
-    const total = await queryBuilder.getCount();
+    queryBuilder
+      .leftJoinAndSelect('tutorial.category', 'category')
+      .leftJoinAndSelect('tutorial.creator', 'creator');
+
+    queryBuilder.select([
+      'tutorial.id',
+      'tutorial.title',
+      'tutorial.excerpt',
+      'tutorial.readTime',
+      'tutorial.coverImage_url',
+      'tutorial.status',
+      'tutorial.tags',
+      'tutorial.createdAt',
+      'category.name',
+      'creator.username',
+      'creator.avatarUrl',
+    ]);
+
+    const total = await queryBuilder
+      .where('tutorial.status = :status', { status: eContentStatus.APPROVED })
+      .getCount();
 
     const data = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
+      .where('tutorial.status = :status', { status: eContentStatus.APPROVED })
+      .orderBy('tutorial.createdAt', 'DESC')
       .getMany();
 
     const totalPages = Math.ceil(total / limit);
