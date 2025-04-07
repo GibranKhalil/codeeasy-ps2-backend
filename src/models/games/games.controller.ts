@@ -18,6 +18,7 @@ import { UpdateGameDto } from './dto/update-game.dto';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { PaginationParams } from 'src/@types/paginationParams.type';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { InteractDto } from './dto/interact.dto';
 
 @Controller('games')
 export class GamesController {
@@ -68,17 +69,36 @@ export class GamesController {
   }
 
   @Get('/creator/:id')
-  @UseGuards(JwtAuthGuard)
   findByCreator(
     @Param('id') id: number,
     @Query() pagination: PaginationParams,
+    @Query('pid') excludePid: string,
   ) {
-    return this.gamesService.findByCreator(id, pagination);
+    return this.gamesService.findByCreator(id, pagination, excludePid);
   }
 
   @Get()
-  findAll() {
-    return this.gamesService.findAll();
+  findAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('category') category: number,
+  ) {
+    return this.gamesService.findAll(page, limit, { category });
+  }
+
+  @Patch(':pid/interact')
+  addInteraction(
+    @Param('pid') pid: string,
+    @Body() interactionDto: InteractDto,
+  ) {
+    const validInteractions = ['downloads', 'views', 'stars', 'likes'];
+    if (!validInteractions.includes(interactionDto.type)) {
+      throw new BadRequestException(
+        `Tipo de interação inválido. Deve ser um dos seguintes: ${validInteractions.join(', ')}`,
+      );
+    }
+
+    return this.gamesService.addInteraction(pid, interactionDto.type);
   }
 
   @Get(':id')

@@ -7,6 +7,7 @@ import type { UpdateTutorialDto } from './dto/update-tutorial.dto';
 import { IPaginatedResult } from 'src/@types/interfaces/common/iPaginatedResult.interface';
 import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import { PaginationParams } from 'src/@types/paginationParams.type';
+import { Interactions } from 'src/@types/interactions.type';
 
 @Injectable()
 export class TutorialRepository implements ITutorialsRepository {
@@ -14,35 +15,45 @@ export class TutorialRepository implements ITutorialsRepository {
 
   constructor(private readonly dataSource: DataSource) {}
 
-  async find(page = 1, limit = 10): Promise<IPaginatedResult<Tutorial>> {
+  async find(
+    page = 1,
+    limit = 10,
+    filters?: { category?: number },
+  ): Promise<IPaginatedResult<Tutorial>> {
     const queryBuilder = this.repository.createQueryBuilder('tutorial');
 
     queryBuilder
       .leftJoinAndSelect('tutorial.category', 'category')
       .leftJoinAndSelect('tutorial.creator', 'creator');
 
-    queryBuilder.select([
-      'tutorial.id',
-      'tutorial.title',
-      'tutorial.excerpt',
-      'tutorial.readTime',
-      'tutorial.coverImage_url',
-      'tutorial.status',
-      'tutorial.tags',
-      'tutorial.createdAt',
-      'category.name',
-      'creator.username',
-      'creator.avatarUrl',
-    ]);
+    queryBuilder
+      .select([
+        'tutorial.id',
+        'tutorial.title',
+        'tutorial.pid',
+        'tutorial.excerpt',
+        'tutorial.readTime',
+        'tutorial.coverImage_url',
+        'tutorial.status',
+        'tutorial.tags',
+        'tutorial.createdAt',
+        'category.name',
+        'creator.username',
+        'creator.avatarUrl',
+      ])
+      .where('tutorial.status = :status', { status: eContentStatus.APPROVED });
 
-    const total = await queryBuilder
-      .where('tutorial.status = :status', { status: eContentStatus.APPROVED })
-      .getCount();
+    if (filters?.category && Number(filters?.category)) {
+      queryBuilder.andWhere('category.id = :category', {
+        category: Number(filters?.category),
+      });
+    }
+
+    const total = await queryBuilder.getCount();
 
     const data = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
-      .where('tutorial.status = :status', { status: eContentStatus.APPROVED })
       .orderBy('tutorial.createdAt', 'DESC')
       .getMany();
 
@@ -135,12 +146,102 @@ export class TutorialRepository implements ITutorialsRepository {
     });
   }
 
+  async findByTagsAndCategory(
+    page = 1,
+    limit = 10,
+    filters?: { category?: number; tags?: string[]; pid?: string },
+  ): Promise<IPaginatedResult<Tutorial>> {
+    const queryBuilder = this.repository.createQueryBuilder('tutorial');
+
+    queryBuilder
+      .leftJoinAndSelect('tutorial.category', 'category')
+      .leftJoinAndSelect('tutorial.creator', 'creator');
+
+    queryBuilder
+      .select([
+        'tutorial.id',
+        'tutorial.title',
+        'tutorial.pid',
+        'tutorial.excerpt',
+        'tutorial.readTime',
+        'tutorial.coverImage_url',
+        'tutorial.status',
+        'tutorial.tags',
+        'tutorial.createdAt',
+        'category.name',
+        'creator.username',
+        'creator.avatarUrl',
+      ])
+      .where('tutorial.status = :status', { status: eContentStatus.APPROVED });
+
+    if (filters?.category && Number(filters?.category)) {
+      queryBuilder.andWhere('category.id = :category', {
+        category: Number(filters?.category),
+      });
+    }
+
+    if (
+      filters?.tags &&
+      Array.isArray(filters.tags) &&
+      filters.tags.length > 0
+    ) {
+      queryBuilder.andWhere('tutorial.tags @> :tags', { tags: filters.tags });
+    }
+
+    if (filters?.pid) {
+      queryBuilder.andWhere('tutorial.pid <> :pid', { pid: filters.pid });
+    }
+
+    const total = await queryBuilder.getCount();
+
+    const data = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('tutorial.createdAt', 'DESC')
+      .getMany();
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      },
+    };
+  }
+
   async findOne(options: object): Promise<Tutorial | null> {
     return this.repository.findOne(options);
   }
 
   create(entity: CreateTutorialDto): Tutorial {
     return this.repository.create(entity);
+  }
+
+  async addInteraction(id: number, interactionDto: keyof Interactions) {
+    const allowedFields: (keyof Interactions)[] = ['likes', 'views'];
+
+    if (!allowedFields.includes(interactionDto)) {
+      throw new Error('Campo de interação inválido.');
+    }
+
+    const qb = this.repository
+      .createQueryBuilder()
+      .update(Tutorial)
+      .where('id = :id', { id });
+
+    qb.set({
+      [interactionDto]: () => `"${interactionDto}" + 1`,
+    });
+
+    await qb.execute();
+
+    return;
   }
 
   async save(entity: CreateTutorialDto): Promise<Tutorial> {

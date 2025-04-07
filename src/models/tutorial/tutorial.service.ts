@@ -17,6 +17,7 @@ import { UpdateResult } from 'typeorm';
 import { Tutorial } from './entities/tutorial.entity';
 import { User } from '../users/entities/user.entity';
 import { StorageService } from '../storage/storage.service';
+import { Interactions } from 'src/@types/interactions.type';
 
 @Injectable()
 export class TutorialService {
@@ -113,12 +114,53 @@ export class TutorialService {
     return await this.submissionRepository.save(newSubmission);
   }
 
+  async addInteraction(pid: string, interactionDto: keyof Interactions) {
+    const tutorial = await this.tutorialRepository.findOne({
+      where: { pid },
+    });
+
+    if (!tutorial) {
+      throw new NotFoundException('Tutorial não encontrado');
+    }
+
+    return await this.tutorialRepository.addInteraction(
+      tutorial.id,
+      interactionDto,
+    );
+  }
+
+  async findSimilars(page = 1, limit = 10, pid: string) {
+    const tutorial = await this.tutorialRepository.findOne({
+      where: { pid },
+      relations: ['category'],
+    });
+
+    if (!tutorial) {
+      throw new NotFoundException('Tutorial não encontrado');
+    }
+
+    const { tags, category } = tutorial;
+
+    return await this.tutorialRepository.findByTagsAndCategory(page, limit, {
+      category: category.id,
+      tags,
+      pid,
+    });
+  }
+
   findFeaturedTutorialsWithCreator() {
     return this.tutorialRepository.findFeaturedTutorialsWithCreator();
   }
 
-  findAll(page = 1, limit = 10) {
-    return this.tutorialRepository.find(page, limit);
+  findAll(page = 1, limit = 10, filters?: { category?: number }) {
+    return this.tutorialRepository.find(page, limit, filters);
+  }
+
+  findOneByPid(pid: string) {
+    return this.tutorialRepository.findOne({
+      where: { pid },
+      relations: ['creator', 'category'],
+    });
   }
 
   findByCreator(creatorId: number, pagination: PaginationParams) {

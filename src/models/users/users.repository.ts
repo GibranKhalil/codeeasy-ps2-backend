@@ -38,6 +38,8 @@ export class UsersRepository implements IUsersRepository {
         'user.linkedin',
         'user.github',
         'user.coverImageUrl',
+        'user.dailyDev',
+        'user.twitter',
       ])
       .leftJoinAndSelect('user.roles', 'roles');
 

@@ -1,7 +1,7 @@
 import { DeleteResult, UpdateResult } from 'typeorm';
 
 export interface IGenericRepository<FINDALL, FIND, CREATE, UPDATE, ENTITY> {
-  find(page: number, limit: number): Promise<FINDALL>;
+  find(page: number, limit: number, filters?: object): Promise<FINDALL>;
   findOneBy(options: object): Promise<FIND | null>;
   findOne(options: object): Promise<FIND | null>;
   save(entity: CREATE): Promise<ENTITY>;

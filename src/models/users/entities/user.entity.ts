@@ -44,6 +44,12 @@ export class User {
   website?: string;
 
   @Column({ nullable: true })
+  twitter?: string;
+
+  @Column({ nullable: true })
+  dailyDev?: string;
+
+  @Column({ nullable: true })
   lastLoginAt: Date;
 
   @Column({ nullable: true })

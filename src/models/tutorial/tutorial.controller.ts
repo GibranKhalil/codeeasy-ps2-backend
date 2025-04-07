@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Patch,
 } from '@nestjs/common';
 import { TutorialService } from './tutorial.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
@@ -18,6 +19,7 @@ import type { CreateTutorialDto } from './dto/create-tutorial.dto';
 import type { UpdateTutorialDto } from './dto/update-tutorial.dto';
 import { PaginationParams } from 'src/@types/paginationParams.type';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { InteractDto } from '../games/dto/interact.dto';
 
 @Controller('tutorials')
 export class TutorialController {
@@ -61,13 +63,26 @@ export class TutorialController {
   }
 
   @Get()
-  findAll() {
-    return this.tutorialsService.findAll();
+  findAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('category') category: number,
+  ) {
+    return this.tutorialsService.findAll(page, limit, { category });
   }
 
   @Get('/featured')
   findFeaturedContent() {
     return this.tutorialsService.findFeaturedTutorialsWithCreator();
+  }
+
+  @Get('/similar/:pid')
+  findSimilarsTutorials(
+    @Param('pid') pid: string,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return this.tutorialsService.findSimilars(page, limit, pid);
   }
 
   @Get('/creator/:id')
@@ -77,6 +92,11 @@ export class TutorialController {
     @Query() pagination: PaginationParams,
   ) {
     return this.tutorialsService.findByCreator(id, pagination);
+  }
+
+  @Get('/pid/:pid')
+  findOneByPid(@Param(':pid') pid: string) {
+    return this.tutorialsService.findOneByPid(pid);
   }
 
   @Get(':id')
@@ -91,6 +111,21 @@ export class TutorialController {
     @Body() updateTutorialDto: UpdateTutorialDto,
   ) {
     return this.tutorialsService.update(+id, updateTutorialDto);
+  }
+
+  @Patch(':pid/interact')
+  addInteraction(
+    @Param('pid') pid: string,
+    @Body() interactionDto: InteractDto,
+  ) {
+    const validInteractions = ['views', 'likes'];
+    if (!validInteractions.includes(interactionDto.type)) {
+      throw new BadRequestException(
+        `Tipo de interação inválido. Deve ser um dos seguintes: ${validInteractions.join(', ')}`,
+      );
+    }
+
+    return this.tutorialsService.addInteraction(pid, interactionDto.type);
   }
 
   @Delete(':id')

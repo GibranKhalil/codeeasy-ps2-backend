@@ -15,6 +15,7 @@ import { User } from '../users/entities/user.entity';
 import { Game } from './entities/game.entity';
 import { StorageService } from '../storage/storage.service';
 import { ICategoriesRepository } from 'src/@types/interfaces/repositories/iCategoriesRepository.interface';
+import { Interactions } from 'src/@types/interactions.type';
 
 @Injectable()
 export class GamesService {
@@ -145,12 +146,29 @@ export class GamesService {
     await this.submissionRepository.save(newSubmission);
   }
 
-  findAll(page = 1, limit = 10) {
-    return this.gameRepository.find(page, limit);
+  async addInteraction(pid: string, interactionDto: keyof Interactions) {
+    const game = await this.gameRepository.findOne({
+      where: { pid },
+    });
+
+    if (!game) {
+      throw new NotFoundException('Jogo não encontrado');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return await this.gameRepository.addInteraction(game.id, interactionDto);
   }
 
-  findByCreator(creatorId: number, pagination: PaginationParams) {
-    return this.gameRepository.findByCreator(creatorId, pagination);
+  findAll(page = 1, limit = 10, filters?: { category?: number }) {
+    return this.gameRepository.find(page, limit, filters);
+  }
+
+  findByCreator(
+    creatorId: number,
+    pagination: PaginationParams,
+    excludePid?: string,
+  ) {
+    return this.gameRepository.findByCreator(creatorId, pagination, excludePid);
   }
 
   findFeaturedGames() {

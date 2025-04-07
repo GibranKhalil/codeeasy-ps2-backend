@@ -13,6 +13,7 @@ export interface ISnippetRepository
     UpdateSnippetDto,
     Snippet
   > {
+  addInteraction(id: number, interactionDto: string): unknown;
   findAllWithRelations(): Promise<Snippet[]>;
   findFeaturedSnippetsWithCreator(): Promise<Snippet[]>;
   findWithRelations(id: number): Promise<Snippet | null>;

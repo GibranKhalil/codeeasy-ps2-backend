@@ -13,6 +13,7 @@ export interface ITutorialsRepository
     UpdateTutorialDto,
     Tutorial
   > {
+  addInteraction(id: number, interactionDto: string): unknown;
   findFeaturedTutorialsWithCreator(): Promise<Tutorial[]>;
   findByCreator(
     creatorId: number,
@@ -20,4 +21,9 @@ export interface ITutorialsRepository
   ): Promise<IPaginatedResult<Tutorial>>;
   findWithRelations(id: number): Promise<Tutorial | null>;
   findAllWithRelations(): Promise<Tutorial[]>;
+  findByTagsAndCategory(
+    page: number,
+    limit: number,
+    filters?: { category?: number; tags?: string[]; pid?: string },
+  ): Promise<IPaginatedResult<Tutorial>>;
 }

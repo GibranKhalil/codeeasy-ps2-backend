@@ -12,4 +12,5 @@ export class CreateSnippetDto {
   creator?: User; // esse campo não vem do front, é preenchido pelo service
   engine?: eSnippetEngine;
   status?: eContentStatus;
+  tags?: string[];
 }

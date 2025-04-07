@@ -14,6 +14,7 @@ import { ISubmissionsRepository } from 'src/@types/interfaces/repositories/iSubm
 import { PaginationParams } from 'src/@types/paginationParams.type';
 import { eContentStatus } from 'src/@types/enums/eContentStatus.enum';
 import { UpdateResult } from 'typeorm';
+import { Interactions } from 'src/@types/interactions.type';
 
 @Injectable()
 export class SnippetService {
@@ -46,6 +47,9 @@ export class SnippetService {
     const newSnippet = this.snippetsRepository.create({
       ...createSnippetDto,
       creator,
+      tags: Array.isArray(createSnippetDto.tags)
+        ? createSnippetDto.tags
+        : String(createSnippetDto.tags)?.split(',') || [],
     });
 
     const snippet = await this.snippetsRepository.save(newSnippet);
@@ -70,8 +74,25 @@ export class SnippetService {
     return this.snippetsRepository.findFeaturedSnippetsWithCreator();
   }
 
-  findAll(page = 1, limit = 10) {
-    return this.snippetsRepository.find(page, limit);
+  findAll(
+    page = 1,
+    limit = 10,
+    engine?: string,
+    language?: string,
+    search?: string,
+  ) {
+    return this.snippetsRepository.find(page, limit, {
+      engine,
+      language,
+      search,
+    });
+  }
+
+  findOneByPid(pid: string) {
+    return this.snippetsRepository.findOne({
+      where: { pid },
+      relations: ['creator'],
+    });
   }
 
   findOne(id: number) {
@@ -95,6 +116,21 @@ export class SnippetService {
     return this.performUpdate(entity.id, status, pid);
   }
 
+  async addInteraction(pid: string, interactionDto: keyof Interactions) {
+    const snippet = await this.snippetsRepository.findOne({
+      where: { pid },
+    });
+
+    if (!snippet) {
+      throw new NotFoundException('Snippet não encontrado');
+    }
+
+    return await this.snippetsRepository.addInteraction(
+      snippet.id,
+      interactionDto,
+    );
+  }
+
   private async findSnippetIdByPid(pid: string) {
     return await this.snippetsRepository.findOneBy({ pid });
   }
@@ -114,10 +150,6 @@ export class SnippetService {
     if (!updateResult.affected || updateResult.affected <= 0) {
       this.logAndThrowUpdateError(id, pid, status);
     }
-
-    this.logger.log(
-      `Status do Snippet ${id} (PID: ${pid}) atualizado para ${status}.`,
-    );
     return updateResult;
   }
 
