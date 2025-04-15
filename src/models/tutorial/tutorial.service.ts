@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -18,6 +19,7 @@ import { Tutorial } from './entities/tutorial.entity';
 import { User } from '../users/entities/user.entity';
 import { StorageService } from '../storage/storage.service';
 import { Interactions } from 'src/@types/interactions.type';
+import { Category } from '../categorys/entities/category.entity';
 
 @Injectable()
 export class TutorialService {
@@ -171,8 +173,82 @@ export class TutorialService {
     return this.tutorialRepository.findOneBy({ id });
   }
 
-  update(id: number, updateTutorialDto: UpdateTutorialDto) {
-    return this.tutorialRepository.update(id, updateTutorialDto);
+  async update(
+    id: number,
+    updateTutorialDto: UpdateTutorialDto,
+    creator_id: number,
+    newCoverImage?: Express.Multer.File,
+  ) {
+    const tutorial = await this.tutorialRepository.findOne({
+      where: { id },
+      relations: ['creator'],
+    });
+
+    if (!tutorial) {
+      throw new NotFoundException('Tutorial não encontrado');
+    }
+
+    if (Number(creator_id) !== tutorial.creator.id) {
+      throw new BadRequestException(
+        'Apenas o criador do tutorial pode editá-lo',
+      );
+    }
+
+    let category = tutorial.category;
+    if (updateTutorialDto.categoryId) {
+      category = (await this.categoriesRepository.findOneBy({
+        id: updateTutorialDto.categoryId,
+      })) as Category;
+
+      if (!category) {
+        throw new NotFoundException('Categoria não encontrada');
+      }
+    }
+
+    let newCoverImageUrl: string | undefined;
+
+    if (newCoverImage) {
+      try {
+        newCoverImageUrl = await this.storageService.uploadFile(
+          newCoverImage.buffer,
+          newCoverImage.originalname,
+          newCoverImage.mimetype,
+        );
+      } catch (error) {
+        console.error('Erro ao fazer upload da nova imagem:', error);
+        throw new InternalServerErrorException(
+          'Erro ao atualizar a imagem de capa',
+        );
+      }
+    }
+
+    if (newCoverImageUrl && tutorial.coverImage_url) {
+      const oldFileName = tutorial.coverImage_url.split('/').pop();
+      if (oldFileName) {
+        try {
+          await this.storageService.deleteFile(oldFileName);
+        } catch (error) {
+          console.warn('Erro ao excluir imagem anterior:', error);
+        }
+      }
+    }
+
+    const updatedData = {
+      ...updateTutorialDto,
+      coverImage_url: newCoverImageUrl ?? tutorial.coverImage_url,
+      tags: Array.isArray(updateTutorialDto.tags)
+        ? updateTutorialDto.tags
+        : String(updateTutorialDto.tags)?.split(',') || [],
+    };
+
+    delete (updatedData as CreateTutorialDto).categoryId;
+    delete (updatedData as CreateTutorialDto).creatorId;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    delete (updatedData as any).coverImage;
+
+    await this.tutorialRepository.update(id, updatedData);
+
+    return this.tutorialRepository.findOne({ where: { id } });
   }
 
   async updateStatus(

@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Delete,
   Body,
   Param,
@@ -104,13 +103,32 @@ export class TutorialController {
     return this.tutorialsService.findOne(+id);
   }
 
-  @Put(':id')
+  @Patch(':id')
+  @UseInterceptors(FileInterceptor('coverImage'))
   @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: string,
     @Body() updateTutorialDto: UpdateTutorialDto,
+    @UploadedFile() coverImage: Express.Multer.File,
+    @Query('creator') creator_id: number,
   ) {
-    return this.tutorialsService.update(+id, updateTutorialDto);
+    if (coverImage) {
+      const imageSizeInBytes = coverImage.size;
+      const imageSizeInMB = imageSizeInBytes / (1024 * 1024);
+
+      if (imageSizeInMB > 5) {
+        throw new BadRequestException(
+          'A imagem de capa não pode ser maior que 5MB',
+        );
+      }
+    }
+
+    return this.tutorialsService.update(
+      +id,
+      updateTutorialDto,
+      creator_id,
+      coverImage,
+    );
   }
 
   @Patch(':pid/interact')
